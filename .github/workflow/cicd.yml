@@ -1,0 +1,45 @@
+name: Deploy to VPS
+
+on:
+  push:
+    branches: [ main ]
+ 
+jobs:
+  deploy:
+    name: Deploy to VPS
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Deploy to VPS
+      uses: appleboy/ssh-action@v1.0.3
+      with:
+        host: ${{ secrets.VPS_HOST }}
+        username: ${{ secrets.VPS_USER }}
+        key: ${{ secrets.VPS_SSH_KEY }}
+        port: ${{ secrets.VPS_PORT }}
+        script: |
+          echo "🚀 Starting deployment..."
+          
+          # Aller dans le dossier du projet
+          cd ~/asmtariste
+          
+          # Pull les derniers changements
+          echo "📥 Pulling latest changes..."
+          git pull origin main
+          
+          # Arrêter les containers existants
+          echo "🛑 Stopping containers..."
+          docker-compose down
+          
+          # Rebuild et redémarrer
+          echo "🔨 Building and starting containers..."
+          docker-compose up -d --build
+          
+          # Vérifier que tout fonctionne
+          echo "✅ Checking containers status..."
+          docker-compose ps
+          
+          echo "🎉 Deployment completed!"
