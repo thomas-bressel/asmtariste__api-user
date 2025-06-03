@@ -1,0 +1,28 @@
+{
+  "compilerOptions": {
+    "baseUrl": "./",
+    "target": "es2017",
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "outDir": "./dist",
+    "rootDir": "./",
+    "forceConsistentCasingInFileNames": true,
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "paths": {
+      "src/*": ["src/*"],
+    "@models/*": ["src/Models/*"],
+    "../Entities/*": ["src/Entities/*"],
+    "../Controllers/*": ["src/Controllers/*"],
+    "../Services/*": ["src/Services/*"],
+    "../Repositories/*": ["src/Repositories/*"],
+    "../DTOs/*": ["src/DTOs/*"],
+    "./Routes/*": ["src/Routes/*"]
+    }
+  },
+  "include": ["./**/*"],
+  "exclude": ["node_modules", "**/*.test.ts"]
+}
