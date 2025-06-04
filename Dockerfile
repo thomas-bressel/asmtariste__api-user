@@ -1,16 +1,19 @@
-# Stage 1: Build
-FROM node:22 AS builder
+#Stage 1: Build
+FROM node:22-slim AS builder
 WORKDIR /app
-COPY package.json package-lock.json tsconfig.json ./
+COPY package.json pnpm-lock.yaml ./
+RUN npm install -g pnpm
+RUN pnpm install
 COPY src/ ./src/
-RUN npm ci
-RUN npm run build
+COPY tsconfig.json ./
+RUN pnpm run build
 
 # Stage 2: Production
-FROM node:22
+FROM node:22-slim
 WORKDIR /app
-COPY package.json package-lock.json ./
-RUN npm ci --only=production
+COPY package.json pnpm-lock.yaml ./
+RUN npm install -g pnpm
+RUN pnpm install --prod
 COPY --from=builder /app/dist ./dist
 EXPOSE 5002
-CMD ["npm", "start"]
+CMD ["pnpm", "start"]
