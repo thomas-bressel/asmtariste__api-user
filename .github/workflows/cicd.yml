@@ -1,5 +1,4 @@
 name: Deploy to VPS
-
 on:
   push:
     branches: [ main ]
@@ -23,23 +22,63 @@ jobs:
         script: |
           echo "🚀 Starting deployment..."
           
-          # Aller dans le dossier du projet
-          cd ~/asmtariste
+          # Debug - vérifier où on est
+          echo "📍 Current directory: $(pwd)"
+          echo "📂 Listing home directory:"
+          ls -la ~/
           
-          # Pull les derniers changements
-          echo "📥 Pulling latest changes..."
+          # Vérifier si le dossier existe
+          if [ ! -d "$HOME/asmtariste/asmtariste__apt-user" ]; then
+            echo "❌ Directory $HOME/asmtariste/asmtariste__apt-user does not exist!"
+            exit 1
+          fi
+          
+          # Aller dans le dossier du projet
+          cd ~/asmtariste/asmtariste__apt-user
+          echo "📍 Now in: $(pwd)"
+          
+          # Vérifier l'état Git avant
+          echo "📝 Git status before pull:"
+          git status
+          echo "📝 Current branch:"
+          git branch
+          echo "📝 Last commit:"
+          git log -1 --oneline
+          
+          # Forcer la mise à jour (écraser les modifications locales)
+          #echo "📥 Resetting local changes and pulling..."
+          #git reset --hard HEAD
+          #git clean -fd
           git pull origin main
           
-          # Arrêter les containers existants
-          echo "🛑 Stopping containers..."
-          docker-compose down
+          # Vérifier l'état après
+          echo "📝 Git status after pull:"
+          git status
+          echo "📝 New last commit:"
+          git log -1 --oneline
           
-          # Rebuild et redémarrer
+          # Installer docker-compose si manquant
+          echo "🐳 Checking docker-compose..."
+          if ! command -v docker-compose &> /dev/null; then
+            echo "Installing docker-compose..."
+            sudo curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+            sudo chmod +x /usr/local/bin/docker-compose
+          fi
+          
+          # Vérifier docker-compose dans le parent
+          echo "🐳 Checking docker-compose file in parent directory:"
+          ls -la ../docker-compose.yml || echo "⚠️ docker-compose.yml not found in parent!"
+          
+          # Arrêter les containers existants (depuis le parent)
+          echo "🛑 Stopping containers..."
+          cd .. && docker compose down || echo "⚠️ No containers to stop"
+          
+          # Rebuild et redémarrer (depuis le parent)
           echo "🔨 Building and starting containers..."
-          docker-compose up -d --build
+          docker compose up -d --build
           
           # Vérifier que tout fonctionne
           echo "✅ Checking containers status..."
-          docker-compose ps
+          docker compose ps
           
           echo "🎉 Deployment completed!"
