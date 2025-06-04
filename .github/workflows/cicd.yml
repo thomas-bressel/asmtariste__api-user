@@ -21,29 +21,16 @@ jobs:
         port: ${{ secrets.VPS_PORT }}
         script: |
           echo "🚀 Starting deployment..."
-          
-          # Debug - vérifier où on est
-          echo "📍 Current directory: $(pwd)"
-          echo "📂 Listing home directory:"
-          ls -la ~/
-          
+                   
           # Vérifier si le dossier existe
-          if [ ! -d "$HOME/asmtariste/asmtariste__apt-user" ]; then
-            echo "❌ Directory $HOME/asmtariste/asmtariste__apt-user does not exist!"
+          if [ ! -d "$HOME/asmtariste/asmtariste__api-user" ]; then
+            echo "❌ Directory $HOME/asmtariste/asmtariste__api-user does not exist!"
             exit 1
           fi
           
           # Aller dans le dossier du projet
-          cd ~/asmtariste/asmtariste__apt-user
+          cd ~/asmtariste/asmtariste__api-user
           echo "📍 Now in: $(pwd)"
-          
-          # Vérifier l'état Git avant
-          echo "📝 Git status before pull:"
-          git status
-          echo "📝 Current branch:"
-          git branch
-          echo "📝 Last commit:"
-          git log -1 --oneline
           
           # Forcer la mise à jour (écraser les modifications locales)
           #echo "📥 Resetting local changes and pulling..."
@@ -51,19 +38,6 @@ jobs:
           #git clean -fd
           git pull origin main
           
-          # Vérifier l'état après
-          echo "📝 Git status after pull:"
-          git status
-          echo "📝 New last commit:"
-          git log -1 --oneline
-          
-          # Installer docker-compose si manquant
-          echo "🐳 Checking docker-compose..."
-          if ! command -v docker-compose &> /dev/null; then
-            echo "Installing docker-compose..."
-            sudo curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
-            sudo chmod +x /usr/local/bin/docker-compose
-          fi
           
           # Vérifier docker-compose dans le parent
           echo "🐳 Checking docker-compose file in parent directory:"
