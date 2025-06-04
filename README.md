@@ -20,6 +20,7 @@
 ## 📦 Personal Modules
 
 - `server-config v2.1.0` — Server configuration manager
+- `cors-middleware v1.2.0` — Cors configuration manager
 
 ## 🚀 About
 

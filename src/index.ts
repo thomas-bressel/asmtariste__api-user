@@ -16,7 +16,7 @@ import { CONSOLE_COLORS } from "./shared/constants/console-colors.constants";
 
 
 // Middleware importation
-
+import CorsMiddleware from "./presentation/middlewares/cors.middleware";
 
 
 const server: Express = express();
@@ -27,6 +27,14 @@ server.listen(ServerConfig.getApiListenPort(), () => {
   console.warn(CONSOLE_COLORS.bgMagenta, `API NAME -> ${ServerConfig.getName()} - API VERSION -> ${ServerConfig.getVersion()}`);
 });
 
+// CORS configuration
+try {
+    const corsConfig = CorsMiddleware.getCorsConfig(); 
+    const cors = require("cors"); 
+    server.use(cors(corsConfig));
+  } catch (error: any) {
+    console.error("Error during CORS config : ", error.message);
+  }
 
 
 server.get('/', (req, res) => {
