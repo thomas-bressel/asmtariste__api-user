@@ -33,9 +33,9 @@ jobs:
           echo "📍 Now in: $(pwd)"
           
           # Forcer la mise à jour (écraser les modifications locales)
-          #echo "📥 Resetting local changes and pulling..."
-          #git reset --hard HEAD
-          #git clean -fd
+          echo "📥 Resetting local changes and pulling..."
+          git reset --hard HEAD
+          git clean -fd
           git pull origin main
           
           
