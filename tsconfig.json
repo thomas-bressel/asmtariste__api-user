@@ -23,6 +23,6 @@
     "./Routes/*": ["src/Routes/*"]
     }
   },
-  "include": ["./**/*"],
+  "include": ["./**/*", "../archi-project/src/shared/utils/decorators/security.decorator.ts"],
   "exclude": ["node_modules", "**/*.test.ts"]
 }
