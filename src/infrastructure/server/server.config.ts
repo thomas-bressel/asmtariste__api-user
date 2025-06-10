@@ -5,7 +5,6 @@
  * @since 2024-06-01
  */
 
-require('dotenv').config();
 
 /**
  * Class to manage the server configuration

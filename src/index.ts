@@ -5,8 +5,11 @@
 // Express importation
 import express, { Express } from "express";
 
+// Environnement library need
+require('dotenv').config();
+
 // ConfigServer importation
-import  ServerConfig  from "./infrastructure/server/server-config"
+import  ServerConfig  from "./infrastructure/server/server.config"
 
 // user app components routes
 
