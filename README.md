@@ -22,6 +22,8 @@
 - `server-config v2.1.0` — Server configuration manager
 - `cors-middleware v1.2.0` — Cors configuration manager
 - `body-parser-middleware v1.0.0` -- Parsing HTTP request bodies
+- `csrf-middleware v2.1.0` -- handling CSRF token validation and authentication
+
 
 
 ## 🚀 About
