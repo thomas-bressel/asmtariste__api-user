@@ -9,7 +9,7 @@ import express, { Express } from "express";
 require('dotenv').config();
 
 // ConfigServer importation
-import  ServerConfig  from "./infrastructure/server/server.config"
+import ServerConfig from "./infrastructure/server/server.config"
 
 // user app components routes
 
@@ -32,12 +32,15 @@ server.listen(ServerConfig.getApiListenPort(), () => {
 
 // CORS configuration
 try {
-    const corsConfig = CorsMiddleware.getCorsConfig(); 
-    const cors = require("cors"); 
-    server.use(cors(corsConfig));
-  } catch (error: any) {
-    console.error("Error during CORS config : ", error.message);
-  }
+  const corsConfig = CorsMiddleware.getCorsConfig();
+  const cors = require("cors");
+  server.use(cors(corsConfig));
+} catch (error: any) {
+  console.error("Error during CORS config : ", error.message);
+}
+
+import userRoutes from "./presentation/routes/user.routes";
+server.use('', userRoutes);
 
 
 server.get('/', (req, res) => {
