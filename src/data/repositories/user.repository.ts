@@ -50,6 +50,31 @@ class UserRepository {
   }
 
 
+
+
+  /**
+   * Get the list of all user from de database the the content of their role
+   * @returns 
+   */
+  public async getAllUsersWithRole(): Promise<unknown[]> {
+    let connection;
+    if (!(await this.isDatabaseReachable(this.poolUser))) throw new Error("DATABASE_UNREACHABLE");
+
+    try {
+      connection = await this.poolUser.getConnection();
+      const [rows] = await connection.query<any[]>(this.userQueries.getAllUsersWithRole());
+      if (!rows || rows.length === 0) throw new Error("No users found");
+      return rows;
+
+    } catch (error) {
+      console.error("Erreur MySQL:", error);
+      throw error;
+    } finally {
+      if (connection) connection.release();
+    }
+  }
+
+
 }
 
 export default UserRepository;

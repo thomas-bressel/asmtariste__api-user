@@ -1,0 +1,22 @@
+##################################
+##########      VPS      #########
+##################################
+
+# API Configuration port
+    API_LISTEN_PORT="5002"
+    API_NAME="ASMTARISTE USER"
+    API_VERSION="2.0.0"
+
+
+# CORS definition of the allowed origins
+    CORS_ALLOWED_ORIGINS="https://staging.asmtariste.fr,https://asmtariste.fr,https://dashborad.asmtariste.fr,https://dashboard-staging.asmtariste.fr"
+    CORS_CREDENTIALS="true"
+
+
+# Database (localhost dev)
+    USERDB_HOST_SERVER="localhost"
+    USERDB_PORT_NUMBER="3306"
+    USERDB_DATABASE_NAME="asmtariste_userdb"
+    USERDB_USERNAME="zisquier"
+    USERDB_PASSWORD="pass"
+    USERDB_CONNEXION_LIMIT="100"

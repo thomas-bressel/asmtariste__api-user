@@ -14,7 +14,7 @@ describe('UserController - Unit Tests', () => {
     beforeEach(() => {
         // UserService mock
         mockUserService = {
-            getAllUsers: jest.fn().mockResolvedValue([])
+            getAllUsers: jest.fn()
         } as any;
 
         // Response mock

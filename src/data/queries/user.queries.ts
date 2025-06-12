@@ -6,4 +6,8 @@ export class UserQueries extends UserBaseQueries {
         return this.getAllUsersQuery();
     }
 
+    public getAllUsersWithRole() {
+        return this.getAllUsersWithRoleQuery();
+    }
+
 }

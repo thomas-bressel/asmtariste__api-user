@@ -4,6 +4,7 @@ import UserRepository from "../repositories/user.repository";
 // Entity imports
 import User from "../../domain/entities/user.entity";
 import { UserResponseDTO } from "../dtos/user-response.dto";
+import { UserRoleResponseDTO } from "../dtos/user-role-response.dto";
 
 
 class UserService {
@@ -23,6 +24,16 @@ class UserService {
     return UserResponseDTO.fromEntities(users);
   }
 
+
+
+  /**
+ * Get the list of all users with their role details
+ * @returns 
+ */
+  public async getAllUsersWithRole(): Promise<UserRoleResponseDTO[]> {
+    const rawData = await this.userRepository.getAllUsersWithRole();
+    return UserRoleResponseDTO.toUserWithRoleDTOs(rawData);
+  }
 
 
 
