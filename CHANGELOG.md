@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.3.0] - 2025-06-12
+### Added
+- New route to access to the new featur
+- New service to get all users with role informations
+- Create new unit tests for User Controller
+
+
+
 ## [1.2.0] - 2025-06-10
 ### Added
 - New job test to run tests in CI/CD pipeline
