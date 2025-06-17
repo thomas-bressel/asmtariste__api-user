@@ -15,10 +15,8 @@
  * - The middleware throws errors if any of the required keys are missing.
  */
 
-
-
 // Express import
-import { Request, Response, NextFunction, RequestHandler } from "express";
+import { Request, Response, NextFunction } from "express";
 
 // libraries import
 import jwt from "jsonwebtoken";
@@ -26,14 +24,7 @@ import jwt from "jsonwebtoken";
 // models import
 import { CsrfTokenType } from "../models/csrf.model";
 
-
 class CsrfMiddleware {
-
-    constructor() {
-        this.authToken = this.authToken.bind(this);
-        this.authRefresh = this.authRefresh.bind(this);
-    }
-
 
     /**
      * Get the CSRF token keys from environment variables.
@@ -48,9 +39,6 @@ class CsrfMiddleware {
         };
     }
 
-
-
-
     /**
      * Main method to authenticate the token.
      * @param req 
@@ -58,16 +46,12 @@ class CsrfMiddleware {
      * @param next 
      * @returns 
      */
-    public authToken(req: Request, res: Response, next: NextFunction): any {
+    public authToken(req: Request, res: Response, next: NextFunction): void {
         const token = this.extractToken(req);
-        if (!this.isTokenValid(token)) {
-            return next(new Error("Token manquant ou invalide"));
-        }
+        if (!this.isTokenValid(token)) return next(new Error("Token manquant ou invalide"));
 
         const secretKey = CsrfMiddleware.secretKey;
-        if (!secretKey) {
-            return next(new Error("Clé secrète JWT manquante"));
-        }
+        if (!secretKey) return next(new Error("Clé secrète JWT manquante"));
 
         this.verifyToken(token as string, secretKey, res, next);
     }
@@ -79,28 +63,29 @@ class CsrfMiddleware {
      * @param next 
      * @returns 
      */
-    public authRefresh(req: Request, res: Response, next: NextFunction): any {
+    public authRefresh(req: Request, res: Response, next: NextFunction): void {
 
         const refreshToken = req.body.refreshToken;
         console.log("refreshToken : ", refreshToken)
 
         if (!this.isTokenValid(refreshToken)) {
-            return res.status(401).json({
+            res.status(401).json({
                 error: 'Refresh token missing or invalid',
                 code: 'REFRESH_TOKEN_MISSING',
                 message: 'Please login again'
             });
+            return;
         }
 
         const refreshKey = CsrfMiddleware.refreshKey;
         console.log('refresh Key : ', refreshKey)
         if (!refreshKey) {
-            return res.status(500).json({
+            res.status(500).json({
                 error: 'Refresh key missing',
                 code: 'SERVER_ERROR'
             });
+            return;
         }
-
         this.verifyRefresh(refreshToken, refreshKey, res, next);
     }
 
