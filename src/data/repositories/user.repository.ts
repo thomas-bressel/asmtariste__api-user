@@ -75,6 +75,34 @@ class UserRepository {
   }
 
 
+
+
+
+  /**
+   * Get information of a unique user by its nickname
+   * @param nickname 
+   * @returns 
+   */
+  public async getUserByNickname(nickname: string): Promise<unknown> {
+    let connection;
+    if (!(await this.isDatabaseReachable(this.poolUser))) throw new Error("DATABASE_UNREACHABLE");
+
+    try {
+      connection = await this.poolUser.getConnection();
+      const [rows] = await connection.query<any[]>(this.userQueries.getUserByNickname(), [nickname]);
+      if (!rows || rows.length === 0) throw new Error("Aucun utilisateur trouvé avec ce pseudo");
+      return rows[0];
+
+    } catch (error) {
+      console.error("Erreur MySQL:", error);
+      throw error;
+
+    } finally {
+      if (connection) connection.release();
+    }
+
+  }
+
 }
 
 export default UserRepository;

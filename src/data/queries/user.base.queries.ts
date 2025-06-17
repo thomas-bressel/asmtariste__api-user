@@ -9,5 +9,11 @@ export abstract class UserBaseQueries {
                 JOIN role r ON r.id_role = u.id_role ;`;
     }
 
+    protected getUserByNicknameQuery(): string {
+        return `SELECT * FROM users u
+                JOIN role r ON r.id_role = u.id_role
+                WHERE u.nickname = ?`;
+    }
+
 
 }

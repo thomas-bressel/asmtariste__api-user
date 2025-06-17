@@ -10,4 +10,8 @@ export class UserQueries extends UserBaseQueries {
         return this.getAllUsersWithRoleQuery();
     }
 
+    public getUserByNickname() {
+        return this.getUserByNicknameQuery();
+    }
+
 }
