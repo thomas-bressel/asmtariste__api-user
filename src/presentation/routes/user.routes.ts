@@ -27,7 +27,7 @@ router.get("/user/v1/admin/users", csrfMiddleware.authToken, async (req: Request
     userController.getAllUsers(req, res)
 });
 
-router.post("/user/v1/admin/session/login", async (req: Request, res: Response) => {
+router.post("/user/v1/admin/login", async (req: Request, res: Response) => {
     userController.createSession(req, res)
 });
 

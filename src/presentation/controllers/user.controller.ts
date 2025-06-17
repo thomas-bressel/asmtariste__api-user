@@ -8,7 +8,7 @@ import UserService from "../../data/services/user.service";
 import { validate } from 'class-validator';
 
 // DTO importations
-import { CreateSessionDTO } from "src/data/dtos/create-session.dto";
+import { CreateSessionDTO } from "../../data/dtos/create-session.dto";
 
 
 class UserController {
