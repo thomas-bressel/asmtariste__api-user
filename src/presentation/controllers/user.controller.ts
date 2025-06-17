@@ -4,6 +4,11 @@ import { Request, Response } from "express";
 // Service importation
 import UserService from "../../data/services/user.service";
 
+// Libraries importation
+import { validate } from 'class-validator';
+
+// DTO importations
+import { CreateSessionDTO } from "src/data/dtos/create-session.dto";
 
 
 class UserController {
@@ -53,6 +58,35 @@ class UserController {
 
 
 
+  /**
+   * Send username and password to get a session token
+   * @param req 
+   * @param res 
+   * @returns 
+   */
+  public async createSession(req: Request, res: Response): Promise<Response> {
+    try {
+
+      const createSessionDTO = new CreateSessionDTO();
+      createSessionDTO.nickname = req.body.nickname;
+      createSessionDTO.password = req.body.password;
+
+      // check input DTO with class validator 
+      const errors = await validate(createSessionDTO);
+      if (errors.length > 0) throw new Error("Données invalides.");
+
+      // create a new session
+      const authSession = await this.userService.createSession(createSessionDTO.nickname, createSessionDTO.password);
+      if (!authSession) throw new Error("Aucune informations trouvée pour cet utilisateur.");
+
+      return res.status(200).json(authSession);
+
+    }
+    catch (error) {
+      console.error("Erreur dans UserController - createSession :", error);
+      return res.status(500).json({ message: (error instanceof Error ? error.message : "Erreur interne du serveur") });
+    }
+  }
 
 }
 

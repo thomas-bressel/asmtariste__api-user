@@ -23,7 +23,12 @@ router.use(BodyParserMiddleware.urlEncodedParser);
 
 
 // Routes that will implement csrf middleware
-router.get("/user/v1/admin/users", csrfMiddleware.authToken, async (req: Request, res: Response) =>  
-    { userController.getAllUsers(req, res) });
+router.get("/user/v1/admin/users", csrfMiddleware.authToken, async (req: Request, res: Response) => { 
+    userController.getAllUsers(req, res)
+});
+
+router.post("/user/v1/admin/session/login", async (req: Request, res: Response) => {
+    userController.createSession(req, res)
+});
 
 export default router;
