@@ -26,6 +26,13 @@ import { CsrfTokenType } from "../models/csrf.model";
 
 class CsrfMiddleware {
 
+
+    constructor() {
+        this.authToken = this.authToken.bind(this);
+        this.authRefresh = this.authRefresh.bind(this);
+    }
+
+
     /**
      * Get the CSRF token keys from environment variables.
      * @returns 
