@@ -2,7 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
-## [1.3.0] - 2025-06-12
+## [1.4.0-beta] - 2025-06-17
+### Added
+ - New middleware to check permission on each routes
+
+## [1.3.0-beta] - 2025-06-12
 ### Added
 - New route to access to the new featur
 - New service to get all users with role informations
@@ -10,7 +14,7 @@ All notable changes to this project will be documented in this file.
 
 
 
-## [1.2.0] - 2025-06-10
+## [1.2.0-beta] - 2025-06-10
 ### Added
 - New job test to run tests in CI/CD pipeline
 - Unit tests on user controller getAllUser method to check valid server response
@@ -25,7 +29,7 @@ All notable changes to this project will be documented in this file.
 - CSRF middleware implementation
 - Bodyparser middleware and Frozen decorator implementation
 
-## [1.1.0] - 2025-06-04
+## [1.1.0-beta] - 2025-06-04
 ### Added
 - Cors config module
 ### Fixed
@@ -33,7 +37,7 @@ All notable changes to this project will be documented in this file.
 ### Changed
 - Setting the Express API with ServerConfig module
 
-## [1.0.0] - 2025-06-03
+## [1.0.0-beta] - 2025-06-03
 ### Added
 - CI/CD yaml file creation
 - Initial project setup and first deposit
