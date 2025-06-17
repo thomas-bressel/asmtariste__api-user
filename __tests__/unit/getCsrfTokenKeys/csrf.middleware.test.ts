@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
-import CsrfMiddleware from '../../../../src/presentation/middlewares/csrf.middleware';
+import CsrfMiddleware from '../../../src/presentation/middlewares/csrf.middleware';
 
 // Mock JWT
 jest.mock('jsonwebtoken');

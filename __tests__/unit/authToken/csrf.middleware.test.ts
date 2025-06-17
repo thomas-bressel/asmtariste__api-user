@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
-import CsrfMiddleware from '../../../../src/presentation/middlewares/csrf.middleware';
+import CsrfMiddleware from '../../../src/presentation/middlewares/csrf.middleware';
 
 // Mock JWT
 jest.mock('jsonwebtoken');
@@ -45,63 +45,72 @@ describe('CsrfMiddleware', () => {
         process.env = originalEnv;
     });
 
-    
-
-    describe('authRefresh', () => {
+    describe('authToken', () => {
         beforeEach(() => {
             mockRequest = {
-                body: {}
+                headers: {}
             };
         });
 
 
 
-        it('should authenticate successfully with valid refresh token', () => {
+        it('should authenticate successfully with valid token', () => {
             // Arrange
-            const validRefreshToken = 'valid.refresh.token';
+            const validToken = 'valid.jwt.token';
             const decodedPayload = { userId: 123, role: 'user' };
 
-            mockRequest.body = { refreshToken: validRefreshToken };
+            mockRequest.headers = { authorization: `Bearer ${validToken}` };
             mockJwt.verify.mockImplementation((token, secret, callback) => {
                 (callback as any)(null, decodedPayload);
             });
 
             // Act
-            middleware.authRefresh(mockRequest as Request, mockResponse as Response, mockNext);
+            middleware.authToken(mockRequest as Request, mockResponse as Response, mockNext);
 
             // Assert
-            expect(mockJwt.verify).toHaveBeenCalledWith(validRefreshToken, 'test-refresh-secret', expect.any(Function));
+            expect(mockJwt.verify).toHaveBeenCalledWith(validToken, 'test-secret-key', expect.any(Function));
             expect(mockResponse.locals).toEqual(decodedPayload);
             expect(mockNext).toHaveBeenCalledWith();
+            expect(mockResponse.status).not.toHaveBeenCalled();
         });
 
 
 
 
-        it('should reject when refresh token is missing', () => {
+        it('should reject request when token is missing', () => {
             // Arrange
-            mockRequest.body = {}; // Pas de refreshToken
+            mockRequest.headers = {}; // Pas d'authorization header
 
             // Act
-            middleware.authRefresh(mockRequest as Request, mockResponse as Response, mockNext);
+            middleware.authToken(mockRequest as Request, mockResponse as Response, mockNext);
 
             // Assert
-            expect(mockResponse.status).toHaveBeenCalledWith(401);
-            expect(mockResponse.json).toHaveBeenCalledWith({
-                error: 'Refresh token missing or invalid',
-                code: 'REFRESH_TOKEN_MISSING',
-                message: 'Please login again'
-            });
-            expect(mockNext).not.toHaveBeenCalled();
+            expect(mockNext).toHaveBeenCalledWith(new Error('Token manquant ou invalide'));
+            expect(mockJwt.verify).not.toHaveBeenCalled();
         });
 
 
 
 
-        it('should handle expired refresh token', () => {
+        it('should reject request when authorization header is malformed', () => {
             // Arrange
-            const expiredRefreshToken = 'expired.refresh.token';
-            mockRequest.body = { refreshToken: expiredRefreshToken };
+            mockRequest.headers = { authorization: 'InvalidFormat' }; // Pas de Bearer
+
+            // Act
+            middleware.authToken(mockRequest as Request, mockResponse as Response, mockNext);
+
+            // Assert
+            expect(mockNext).toHaveBeenCalledWith(new Error('Token manquant ou invalide'));
+            expect(mockJwt.verify).not.toHaveBeenCalled();
+        });
+
+
+
+
+        it('should handle expired token correctly', () => {
+            // Arrange
+            const expiredToken = 'expired.jwt.token';
+            mockRequest.headers = { authorization: `Bearer ${expiredToken}` };
 
             const tokenExpiredError = { name: 'TokenExpiredError', message: 'jwt expired' };
             mockJwt.verify.mockImplementation((token, secret, callback) => {
@@ -109,24 +118,25 @@ describe('CsrfMiddleware', () => {
             });
 
             // Act
-            middleware.authRefresh(mockRequest as Request, mockResponse as Response, mockNext);
+            middleware.authToken(mockRequest as Request, mockResponse as Response, mockNext);
 
             // Assert
             expect(mockResponse.status).toHaveBeenCalledWith(401);
             expect(mockResponse.json).toHaveBeenCalledWith({
-                error: 'Refresh token expired',
-                code: 'REFRESH_TOKEN_EXPIRED',
-                message: 'Please login again'
+                error: 'Token expired',
+                code: 'TOKEN_EXPIRED',
+                message: 'Please use refresh token'
             });
+            expect(mockNext).not.toHaveBeenCalled();
         });
 
 
 
 
-        it('should handle invalid refresh token', () => {
+        it('should handle invalid token correctly', () => {
             // Arrange
-            const invalidRefreshToken = 'invalid.refresh.token';
-            mockRequest.body = { refreshToken: invalidRefreshToken };
+            const invalidToken = 'invalid.jwt.token';
+            mockRequest.headers = { authorization: `Bearer ${invalidToken}` };
 
             const invalidTokenError = { name: 'JsonWebTokenError', message: 'invalid token' };
             mockJwt.verify.mockImplementation((token, secret, callback) => {
@@ -134,33 +144,37 @@ describe('CsrfMiddleware', () => {
             });
 
             // Act
-            middleware.authRefresh(mockRequest as Request, mockResponse as Response, mockNext);
+            middleware.authToken(mockRequest as Request, mockResponse as Response, mockNext);
 
             // Assert
             expect(mockResponse.status).toHaveBeenCalledWith(401);
             expect(mockResponse.json).toHaveBeenCalledWith({
-                error: 'Invalid refresh token',
-                code: 'INVALID_REFRESH_TOKEN',
+                error: 'Invalid token',
+                code: 'INVALID_TOKEN',
                 message: 'Please login again'
             });
+            expect(mockNext).not.toHaveBeenCalled();
         });
 
 
 
-        
-        it('should return server error when JWT_REFRESH_SECRET_KEY is missing', () => {
+
+        it('should reject when JWT_SECRET_KEY is missing', () => {
             // Arrange
-            delete process.env.JWT_REFRESH_SECRET_KEY;
-            mockRequest.body = { refreshToken: 'some.token' };
+            delete process.env.JWT_SECRET_KEY;
+            mockRequest.headers = { authorization: 'Bearer valid.token' };
 
             // Act & Assert
             expect(() => {
-                middleware.authRefresh(mockRequest as Request, mockResponse as Response, mockNext);
-            }).toThrow('Error: Missing refresh key');
+                middleware.authToken(mockRequest as Request, mockResponse as Response, mockNext);
+            }).toThrow('Error: Missing secret key');
 
+            expect(mockJwt.verify).not.toHaveBeenCalled();
             expect(mockNext).not.toHaveBeenCalled();
         });
     });
+
+    
 
     describe('getCsrfTokenKeys', () => {
         it('should return all required token configuration', () => {

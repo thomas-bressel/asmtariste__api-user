@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
-import CsrfMiddleware from '../../../../src/presentation/middlewares/csrf.middleware';
+import CsrfMiddleware from '../../../src/presentation/middlewares/csrf.middleware';
 
 // Mock JWT
 jest.mock('jsonwebtoken');
@@ -45,112 +45,51 @@ describe('CsrfMiddleware', () => {
         process.env = originalEnv;
     });
 
-    describe('authToken', () => {
+    
+
+    describe('authRefresh', () => {
         beforeEach(() => {
             mockRequest = {
-                headers: {}
+                body: {}
             };
         });
 
 
 
-        it('should authenticate successfully with valid token', () => {
+        it('should authenticate successfully with valid refresh token', () => {
             // Arrange
-            const validToken = 'valid.jwt.token';
+            const validRefreshToken = 'valid.refresh.token';
             const decodedPayload = { userId: 123, role: 'user' };
 
-            mockRequest.headers = { authorization: `Bearer ${validToken}` };
+            mockRequest.body = { refreshToken: validRefreshToken };
             mockJwt.verify.mockImplementation((token, secret, callback) => {
                 (callback as any)(null, decodedPayload);
             });
 
             // Act
-            middleware.authToken(mockRequest as Request, mockResponse as Response, mockNext);
+            middleware.authRefresh(mockRequest as Request, mockResponse as Response, mockNext);
 
             // Assert
-            expect(mockJwt.verify).toHaveBeenCalledWith(validToken, 'test-secret-key', expect.any(Function));
+            expect(mockJwt.verify).toHaveBeenCalledWith(validRefreshToken, 'test-refresh-secret', expect.any(Function));
             expect(mockResponse.locals).toEqual(decodedPayload);
             expect(mockNext).toHaveBeenCalledWith();
-            expect(mockResponse.status).not.toHaveBeenCalled();
         });
 
 
 
 
-        it('should reject request when token is missing', () => {
+        it('should reject when refresh token is missing', () => {
             // Arrange
-            mockRequest.headers = {}; // Pas d'authorization header
+            mockRequest.body = {}; // Pas de refreshToken
 
             // Act
-            middleware.authToken(mockRequest as Request, mockResponse as Response, mockNext);
-
-            // Assert
-            expect(mockNext).toHaveBeenCalledWith(new Error('Token manquant ou invalide'));
-            expect(mockJwt.verify).not.toHaveBeenCalled();
-        });
-
-
-
-
-        it('should reject request when authorization header is malformed', () => {
-            // Arrange
-            mockRequest.headers = { authorization: 'InvalidFormat' }; // Pas de Bearer
-
-            // Act
-            middleware.authToken(mockRequest as Request, mockResponse as Response, mockNext);
-
-            // Assert
-            expect(mockNext).toHaveBeenCalledWith(new Error('Token manquant ou invalide'));
-            expect(mockJwt.verify).not.toHaveBeenCalled();
-        });
-
-
-
-
-        it('should handle expired token correctly', () => {
-            // Arrange
-            const expiredToken = 'expired.jwt.token';
-            mockRequest.headers = { authorization: `Bearer ${expiredToken}` };
-
-            const tokenExpiredError = { name: 'TokenExpiredError', message: 'jwt expired' };
-            mockJwt.verify.mockImplementation((token, secret, callback) => {
-                (callback as any)(tokenExpiredError, null);
-            });
-
-            // Act
-            middleware.authToken(mockRequest as Request, mockResponse as Response, mockNext);
+            middleware.authRefresh(mockRequest as Request, mockResponse as Response, mockNext);
 
             // Assert
             expect(mockResponse.status).toHaveBeenCalledWith(401);
             expect(mockResponse.json).toHaveBeenCalledWith({
-                error: 'Token expired',
-                code: 'TOKEN_EXPIRED',
-                message: 'Please use refresh token'
-            });
-            expect(mockNext).not.toHaveBeenCalled();
-        });
-
-
-
-
-        it('should handle invalid token correctly', () => {
-            // Arrange
-            const invalidToken = 'invalid.jwt.token';
-            mockRequest.headers = { authorization: `Bearer ${invalidToken}` };
-
-            const invalidTokenError = { name: 'JsonWebTokenError', message: 'invalid token' };
-            mockJwt.verify.mockImplementation((token, secret, callback) => {
-                (callback as any)(invalidTokenError, null);
-            });
-
-            // Act
-            middleware.authToken(mockRequest as Request, mockResponse as Response, mockNext);
-
-            // Assert
-            expect(mockResponse.status).toHaveBeenCalledWith(401);
-            expect(mockResponse.json).toHaveBeenCalledWith({
-                error: 'Invalid token',
-                code: 'INVALID_TOKEN',
+                error: 'Refresh token missing or invalid',
+                code: 'REFRESH_TOKEN_MISSING',
                 message: 'Please login again'
             });
             expect(mockNext).not.toHaveBeenCalled();
@@ -159,22 +98,69 @@ describe('CsrfMiddleware', () => {
 
 
 
-        it('should reject when JWT_SECRET_KEY is missing', () => {
+        it('should handle expired refresh token', () => {
             // Arrange
-            delete process.env.JWT_SECRET_KEY;
-            mockRequest.headers = { authorization: 'Bearer valid.token' };
+            const expiredRefreshToken = 'expired.refresh.token';
+            mockRequest.body = { refreshToken: expiredRefreshToken };
+
+            const tokenExpiredError = { name: 'TokenExpiredError', message: 'jwt expired' };
+            mockJwt.verify.mockImplementation((token, secret, callback) => {
+                (callback as any)(tokenExpiredError, null);
+            });
+
+            // Act
+            middleware.authRefresh(mockRequest as Request, mockResponse as Response, mockNext);
+
+            // Assert
+            expect(mockResponse.status).toHaveBeenCalledWith(401);
+            expect(mockResponse.json).toHaveBeenCalledWith({
+                error: 'Refresh token expired',
+                code: 'REFRESH_TOKEN_EXPIRED',
+                message: 'Please login again'
+            });
+        });
+
+
+
+
+        it('should handle invalid refresh token', () => {
+            // Arrange
+            const invalidRefreshToken = 'invalid.refresh.token';
+            mockRequest.body = { refreshToken: invalidRefreshToken };
+
+            const invalidTokenError = { name: 'JsonWebTokenError', message: 'invalid token' };
+            mockJwt.verify.mockImplementation((token, secret, callback) => {
+                (callback as any)(invalidTokenError, null);
+            });
+
+            // Act
+            middleware.authRefresh(mockRequest as Request, mockResponse as Response, mockNext);
+
+            // Assert
+            expect(mockResponse.status).toHaveBeenCalledWith(401);
+            expect(mockResponse.json).toHaveBeenCalledWith({
+                error: 'Invalid refresh token',
+                code: 'INVALID_REFRESH_TOKEN',
+                message: 'Please login again'
+            });
+        });
+
+
+
+        
+        it('should return server error when JWT_REFRESH_SECRET_KEY is missing', () => {
+            // Arrange
+            delete process.env.JWT_REFRESH_SECRET_KEY;
+            mockRequest.body = { refreshToken: 'some.token' };
 
             // Act & Assert
             expect(() => {
-                middleware.authToken(mockRequest as Request, mockResponse as Response, mockNext);
-            }).toThrow('Error: Missing secret key');
+                middleware.authRefresh(mockRequest as Request, mockResponse as Response, mockNext);
+            }).toThrow('Error: Missing refresh key');
 
-            expect(mockJwt.verify).not.toHaveBeenCalled();
             expect(mockNext).not.toHaveBeenCalled();
         });
     });
-
-    
 
     describe('getCsrfTokenKeys', () => {
         it('should return all required token configuration', () => {
