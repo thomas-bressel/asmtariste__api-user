@@ -1,9 +1,9 @@
 import { Request, Response } from 'express';
-import UserController from '../../src/presentation/controllers/user.controller';
-import UserService from '../../src/data/services/user.service';
-import { UserResponseDTO } from '../../src/data/dtos/user-response.dto';
-import { UserRoleResponseDTO } from '../../src/data/dtos/user-role-response.dto';
-import User from '../../src/domain/entities/user.entity';
+import UserController from '../../../src/presentation/controllers/user.controller';
+import UserService from '../../../src/data/services/user.service';
+import { UserResponseDTO } from '../../../src/data/dtos/user-response.dto';
+import { UserRoleResponseDTO } from '../../../src/data/dtos/user-role-response.dto';
+import User from '../../../src/domain/entities/user.entity';
 
 
 describe('UserController - Unit Tests for getAlluser', () => {
