@@ -2,13 +2,18 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.5.0-beta] - 2025-06-18
+### Added
+ - New route admin/refresh to send a new JWT to the client 
+ - Create a id_session in Redis cache
+
 ## [1.4.0-beta] - 2025-06-17
 ### Added
  - New middleware to check permission on each routes
 
 ## [1.3.0-beta] - 2025-06-12
 ### Added
-- New route to access to the new featur
+- New route to access to the new auth feature admin/login 
 - New service to get all users with role informations
 - Create new unit tests for User Controller
 
