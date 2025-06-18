@@ -59,7 +59,7 @@ class UserService {
 
     // Cheking if this nickname exists, then return user's informations
     const user = await this.userRepository.getUserByNickname(nickname);
-    
+
     // Créate a Flated data Object
     let newUserSession = UserRole.userRoleToDTO(user).toFlatObject()
 
@@ -74,29 +74,92 @@ class UserService {
     if (!newUserSession.is_activated) throw new Error("Utilisateur inactif");
 
     const csrfTokenKeys: CsrfTokenType = CsrfMiddleware.getCsrfTokenKeys();
-    if (!csrfTokenKeys.secretKey || !csrfTokenKeys.refreshKey)  throw new Error("Secret key not found");
+    if (!csrfTokenKeys.secretKey || !csrfTokenKeys.refreshKey) throw new Error("Secret key not found");
 
     // create a new session id 
     const sessionId = uuidv4();
 
+    const payload: Payload = {
+      id_session: sessionId,
+      uuid: newUserSession.uuid,
+      firstname: newUserSession.firstname,
+      lastname: newUserSession.lastname,
+      avatar: newUserSession.avatar,
+      email: newUserSession.email,
+      role: newUserSession.role_name,
+      sessionToken: '',
+      refreshToken: ''
+    };
+
+    payload.sessionToken = jwt.sign(payload, csrfTokenKeys.secretKey, { expiresIn: csrfTokenKeys.tokenTime as any });
+    payload.refreshToken = jwt.sign(payload, csrfTokenKeys.refreshKey, { expiresIn: csrfTokenKeys.refreshTokenTime as any });
+
+    return payload;
+  }
+
+
+
+  /**
+   * Refresh the access token using the decoded refresh token data
+   * @param decoded - Decoded refresh token payload from middleware
+   * @returns New tokens
+   */
+  public async refreshSession(decoded: any): Promise<Payload> {
+    try {
+      // Check if the session exists in Redis 
+      const sessionExists = await this.userRepository.isUserConnected(decoded.uuid);
+      if (!sessionExists) {
+        throw new Error("Session expired in cache");
+      }
+
+      const csrfTokenKeys: CsrfTokenType = CsrfMiddleware.getCsrfTokenKeys();
+      if (!csrfTokenKeys.secretKey || !csrfTokenKeys.refreshKey) {
+        throw new Error("Secret keys not found");
+      }
+
+      // Create new payload for new tokens
       const payload: Payload = {
-        id_session: sessionId,
-        uuid: newUserSession.uuid,
-        firstname: newUserSession.firstname,
-        lastname: newUserSession.lastname,
-        avatar: newUserSession.avatar,
-        email: newUserSession.email,
-        role: newUserSession.role_name,
+        id_session: decoded.id_session,
+        uuid: decoded.uuid,
+        firstname: decoded.firstname,
+        lastname: decoded.lastname,
+        avatar: decoded.avatar,
+        email: decoded.email,
+        role: decoded.role,
         sessionToken: '',
         refreshToken: ''
       };
 
-      payload.sessionToken = jwt.sign(payload, csrfTokenKeys.secretKey, { expiresIn: csrfTokenKeys.tokenTime as any});
-      payload.refreshToken = jwt.sign(payload, csrfTokenKeys.refreshKey, { expiresIn: csrfTokenKeys.refreshTokenTime as any});
+      payload.sessionToken = jwt.sign(payload, csrfTokenKeys.secretKey, { expiresIn: csrfTokenKeys.tokenTime as any });
+      payload.refreshToken = jwt.sign(payload, csrfTokenKeys.refreshKey, { expiresIn: csrfTokenKeys.refreshTokenTime as any });
 
       return payload;
+
+    } catch (error) {
+      console.error("Erreur dans UserService - refreshToken :", error);
+      throw new Error("Unable to refresh token");
+    }
   }
 
+
+    /**
+     * 
+     * @param authSession 
+     * @returns 
+     */
+    public async storeSession(authSession: Payload): Promise<string | null> {
+      try {
+        if (authSession.uuid) {
+          const response = await this.userRepository.storeSession(authSession.id_session, authSession.uuid);
+          return response;
+        }
+        throw new Error("User is unknown");
+      } catch (error) {
+        console.error("Error in UserService - storeSession :", error);
+        throw new Error("Impossible to stock the session");
+      }
+    }
+  
 }
 
 export default UserService;

@@ -79,6 +79,10 @@ class UserController {
       const authSession = await this.userService.createSession(createSessionDTO.nickname, createSessionDTO.password);
       if (!authSession) throw new Error("Aucune informations trouvée pour cet utilisateur.");
 
+       // Store the session into redis
+       const storeSession = await this.userService.storeSession(authSession);
+       if (storeSession !== "OK") throw new Error("Résultat vide");
+
       return res.status(200).json(authSession);
 
     }

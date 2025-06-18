@@ -1,4 +1,6 @@
 import MySQLUserConnection from "../../infrastructure/database/mysql-user.connection";
+import RedisConnection from "../../infrastructure/cache/redis.connection"
+
 import { createPool, Pool } from "mysql2/promise";
 import { UserQueries } from "../../data/queries/user.queries";
 import User from "../../domain/entities/user.entity";
@@ -102,6 +104,68 @@ class UserRepository {
     }
 
   }
+
+
+
+  /**
+   * 
+   * @param id_session 
+   * @param id_user 
+   * @returns 
+   */
+  public async storeSession(id_session: string, id_user: string): Promise<string | null> {
+    const redisClient = RedisConnection.getClient;
+    const expiration = RedisConnection.redisConfig.expiration;
+    try {
+      if (!redisClient.isOpen) await RedisConnection.connect();
+
+      // Delete the old session before store another one
+      const oldSessionId = await redisClient.get(`user:${id_user}:session`);
+      if (oldSessionId && oldSessionId !== id_session) {
+        await redisClient.del(`session:${oldSessionId}`);
+        console.log(`Old session deleted : ${oldSessionId}`);
+      }
+
+      let result;
+      if (expiration > 0) {
+        result = await redisClient.setEx(`session:${id_session}`, expiration, id_user);
+        await redisClient.setEx(`user:${id_user}:session`, expiration, id_session);
+      } else {
+        result = await redisClient.set(`session:${id_session}`, id_user);
+        await redisClient.set(`user:${id_user}:session`, id_session);
+      }
+
+      return result;
+
+    } catch (error) {
+      console.error("Error session stocking:", error);
+      throw error;
+    }
+  }
+
+
+  /**
+   * Method to Check is User has an active session
+   * @param uuid 
+   * @returns 
+   */
+  public async isUserConnected(uuid: string): Promise<boolean> {
+    const redisClient = RedisConnection.getClient;
+
+    try {
+      if (!redisClient.isOpen) await RedisConnection.connect();
+
+      // Check is user have an active session
+      const sessionId = await redisClient.get(`user:${uuid}:session`);
+      return sessionId !== null;
+
+    } catch (error) {
+      console.error("Error checking user connection:", error);
+      // Considere is not connected
+      return false;
+    }
+  }
+
 
 }
 
