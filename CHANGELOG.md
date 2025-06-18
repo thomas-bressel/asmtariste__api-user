@@ -6,6 +6,7 @@ All notable changes to this project will be documented in this file.
 ### Added
  - New route admin/refresh to send a new JWT to the client 
  - Create a id_session in Redis cache
+ - Create a route to verify if the user has an active session
 
 ## [1.4.0-beta] - 2025-06-17
 ### Added

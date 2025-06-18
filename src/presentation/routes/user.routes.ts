@@ -32,5 +32,9 @@ router.post("/user/v1/admin/login", async (req: Request, res: Response) => {
 router.post("/user/v1/admin/refresh", csrfMiddleware.authRefresh, async (req: Request, res: Response) => {
     userController.refreshSession(req, res)
 });
+router.get("/user/v1/admin/verify", csrfMiddleware.authToken, async (req: Request, res: Response) =>  {
+    userController.verifySession(req, res)
+});
+
 
 export default router;

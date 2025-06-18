@@ -10,8 +10,7 @@ import { UserRoleResponseDTO } from "../dtos/user-role-response.dto";
 
 // Models imports
 import { Payload } from "../models/payload.model";
-import { CsrfTokenType } from "../../presentation/models/csrf.model";
-
+import { CsrfTokenType, DecodedToken } from "../../presentation/models/csrf.model";
 
 // Library imports
 import bcrypt from 'bcryptjs';
@@ -142,24 +141,34 @@ class UserService {
   }
 
 
-    /**
-     * 
-     * @param authSession 
-     * @returns 
-     */
-    public async storeSession(authSession: Payload): Promise<string | null> {
-      try {
-        if (authSession.uuid) {
-          const response = await this.userRepository.storeSession(authSession.id_session, authSession.uuid);
-          return response;
-        }
-        throw new Error("User is unknown");
-      } catch (error) {
-        console.error("Error in UserService - storeSession :", error);
-        throw new Error("Impossible to stock the session");
+  /**
+   * 
+   * @param authSession 
+   * @returns 
+   */
+  public async storeSession(authSession: Payload): Promise<string | null> {
+    try {
+      if (authSession.uuid) {
+        const response = await this.userRepository.storeSession(authSession.id_session, authSession.uuid);
+        return response;
       }
+      throw new Error("User is unknown");
+    } catch (error) {
+      console.error("Error in UserService - storeSession :", error);
+      throw new Error("Impossible to stock the session");
     }
-  
+  }
+
+
+  /**
+   * Get uuid from cache to know if the user is connected 
+   * @param decoded 
+   * @returns 
+   */
+  public async verifySession(decoded: DecodedToken): Promise<boolean> {
+    return await this.userRepository.isUserConnected(decoded.uuid);
+  }
+
 }
 
 export default UserService;

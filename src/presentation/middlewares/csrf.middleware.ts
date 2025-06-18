@@ -24,6 +24,12 @@ import jwt from "jsonwebtoken";
 // models import
 import { CsrfTokenType } from "../models/csrf.model";
 
+interface DecodedToken {
+    uuid: string;
+    exp?: number;
+    iat?: number;
+  }
+
 class CsrfMiddleware {
 
 

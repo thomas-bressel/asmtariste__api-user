@@ -10,6 +10,8 @@ import { validate } from 'class-validator';
 // DTO importations
 import { CreateSessionDTO } from "../../data/dtos/create-session.dto";
 
+import { DecodedToken } from "../models/csrf.model";
+
 
 class UserController {
   private userService: UserService;
@@ -110,6 +112,40 @@ class UserController {
       console.error("Erreur dans UserController - refreshToken :", error);
       return res.status(500).json({
         message: error instanceof Error ? error.message : "Erreur interne du serveur"
+      });
+    }
+  }
+
+
+
+  /**
+   * Verify if the user has an active session
+   * @param req 
+   * @param res 
+   * @returns 
+   */
+  public async verifySession(req: Request, res: Response): Promise<Response> {
+    try {
+      const decoded = res.locals as DecodedToken;
+
+      // Check if the user has an active session
+      const isValid = await this.userService.verifySession(decoded);    
+      if (!isValid) {
+        return res.status(401).json({ 
+          success: false, 
+          message: "Session expired or invalid" 
+        });
+      }
+      
+      return res.status(200).json({ 
+        success: true, 
+      });
+      
+    } catch (error) {
+      console.error('Error verifying session:', error);
+      return res.status(500).json({ 
+        success: false, 
+        message: "Internal server error" 
       });
     }
   }

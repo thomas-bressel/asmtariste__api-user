@@ -1,7 +1,7 @@
 /**
  * MySQL Connection - Database configuration
  * 
- * @version 1.1.0
+ * @version 1.1.1
  * @author Thomas Bressel
  * @since 2024-05-15
  * 
@@ -20,7 +20,7 @@
 
 import mysql, { Pool } from 'mysql2';
 import { Frozen } from '../../shared/utils/decorators/security.decorator'
-
+import { DbConfig } from '../../shared/models/mysql.config';
 
 
 @Frozen
@@ -33,7 +33,7 @@ class MySQLUserConnection {
    * 
    * @returns object
    */
-  public static getDbConfig(): Object {
+  public static getDbConfig(): DbConfig {
     return {
       connectionLimit: this.poolUserLimit,
       host: this.host,
