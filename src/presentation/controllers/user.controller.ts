@@ -88,6 +88,27 @@ class UserController {
     }
   }
 
+
+  /**
+ * 
+ * @param req 
+ * @param res 
+ * @returns 
+ */
+  public async refreshSession(req: Request, res: Response): Promise<Response> {
+    try {
+      const decoded = res.locals;
+
+      const newTokens = await this.userService.refreshSession(decoded);
+      return res.status(200).json(newTokens);
+
+    } catch (error) {
+      console.error("Erreur dans UserController - refreshToken :", error);
+      return res.status(500).json({
+        message: error instanceof Error ? error.message : "Erreur interne du serveur"
+      });
+    }
+  }
 }
 
 export default UserController;

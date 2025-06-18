@@ -26,9 +26,11 @@ router.use(BodyParserMiddleware.urlEncodedParser);
 router.get("/user/v1/admin/users", csrfMiddleware.authToken, async (req: Request, res: Response) => { 
     userController.getAllUsers(req, res)
 });
-
 router.post("/user/v1/admin/login", async (req: Request, res: Response) => {
     userController.createSession(req, res)
+});
+router.post("/user/v1/admin/refresh", csrfMiddleware.authRefresh, async (req: Request, res: Response) => {
+    userController.refreshSession(req, res)
 });
 
 export default router;
