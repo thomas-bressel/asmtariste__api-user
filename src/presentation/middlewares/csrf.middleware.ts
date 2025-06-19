@@ -1,7 +1,7 @@
 /**
  * Middleware for handling CSRF token validation and authentication.
  * 
- * @version 2.1.0
+ * @version 2.1.2
  * @author Thomas Bressel
  * @since 2025-06-09
  * 
@@ -23,12 +23,6 @@ import jwt from "jsonwebtoken";
 
 // models import
 import { CsrfTokenType } from "../models/csrf.model";
-
-interface DecodedToken {
-    uuid: string;
-    exp?: number;
-    iat?: number;
-  }
 
 class CsrfMiddleware {
 
@@ -61,10 +55,24 @@ class CsrfMiddleware {
      */
     public authToken(req: Request, res: Response, next: NextFunction): void {
         const token = this.extractToken(req);
-        if (!this.isTokenValid(token)) return next(new Error("Token manquant ou invalide"));
+        if (!this.isTokenValid(token)) {
+            res.status(401).json({
+                error: 'Token missing or invalid',
+                code: 'TOKEN_MISSING',
+                message: 'Authentication token is required'
+            });
+            return;
+        }
 
         const secretKey = CsrfMiddleware.secretKey;
-        if (!secretKey) return next(new Error("Clé secrète JWT manquante"));
+        if (!secretKey) {
+            res.status(500).json({
+                error: 'Secret key missing',
+                code: 'SERVER_ERROR',
+                message: 'Internal server error'
+            });
+            return;
+        }
 
         this.verifyToken(token as string, secretKey, res, next);
     }
@@ -77,9 +85,8 @@ class CsrfMiddleware {
      * @returns 
      */
     public authRefresh(req: Request, res: Response, next: NextFunction): void {
-
-        const refreshToken = req.body.refreshToken;
-        console.log("refreshToken : ", refreshToken)
+        const refreshToken = this.extractToken(req);
+        if(!refreshToken) return;
 
         if (!this.isTokenValid(refreshToken)) {
             res.status(401).json({
@@ -91,7 +98,6 @@ class CsrfMiddleware {
         }
 
         const refreshKey = CsrfMiddleware.refreshKey;
-        console.log('refresh Key : ', refreshKey)
         if (!refreshKey) {
             res.status(500).json({
                 error: 'Refresh key missing',

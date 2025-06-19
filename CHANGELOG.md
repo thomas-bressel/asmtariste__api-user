@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.5.1-beta] - 2025-06-19
+### Patch
+ - Fix csrf middleware in refreshToken method
+
 ## [1.5.0-beta] - 2025-06-18
 ### Added
  - New route admin/refresh to send a new JWT to the client 
