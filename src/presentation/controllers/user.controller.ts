@@ -75,11 +75,17 @@ class UserController {
 
       // check input DTO with class validator 
       const errors = await validate(createSessionDTO);
-      if (errors.length > 0) throw new Error("Données invalides.");
+      if (errors.length > 0) {
+        return res.status(400).json({
+          error: "Données invalides",
+          code: "VALIDATION_ERROR",
+          details: errors
+        });
+      }
 
       // create a new session
       const authSession = await this.userService.createSession(createSessionDTO.nickname, createSessionDTO.password);
-      if (!authSession) throw new Error("Aucune informations trouvée pour cet utilisateur.");
+      if (!authSession) throw new Error("Controller: Aucune informations trouvée pour cet utilisateur.");
 
        // Store the session into redis
        const storeSession = await this.userService.storeSession(authSession);
@@ -89,8 +95,20 @@ class UserController {
 
     }
     catch (error) {
-      console.error("Erreur dans UserController - createSession :", error);
-      return res.status(500).json({ message: (error instanceof Error ? error.message : "Erreur interne du serveur") });
+      const errorMessage = error instanceof Error ? error.message : "Erreur interne";
+      
+      if (errorMessage.includes("Aucun utilisateur trouvé") 
+        || errorMessage.includes("Mot de passe incorrect")) {
+        return res.status(401).json({ 
+          message: "Identifiants incorrects",
+          code: "INVALID_CREDENTIALS" 
+        });
+      }
+      
+      return res.status(500).json({ 
+        message: errorMessage,
+        code: "INTERNAL_ERROR" 
+      });
     }
   }
 

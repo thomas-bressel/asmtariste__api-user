@@ -92,7 +92,7 @@ class UserRepository {
     try {
       connection = await this.poolUser.getConnection();
       const [rows] = await connection.query<any[]>(this.userQueries.getUserByNickname(), [nickname]);
-      if (!rows || rows.length === 0) throw new Error("Aucun utilisateur trouvé avec ce pseudo");
+      if (!rows || rows.length === 0) throw new Error("Repo: Aucun utilisateur trouvé avec ce pseudo");
       return rows[0];
 
     } catch (error) {
