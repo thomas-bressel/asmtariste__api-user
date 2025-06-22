@@ -18,12 +18,12 @@ class InterfaceRepository {
     }
 
     /**
-     * Get document by name from specified collection
+     * Get document by type from specified collection
      */
-    public async getByName(collectionName: string, name: string): Promise<unknown> {
+    public async getDefaultInterfaceByType(collectionName: string, type: string): Promise<any> {
         try {
             const collection: Collection = this.db.collection(collectionName);
-            const result = await collection.findOne({ name: name });
+            const result = await collection.findOne({ type: type });
             return result;
         } catch (error) {
             console.error("Error getting document by name:", error);

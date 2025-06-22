@@ -40,7 +40,9 @@ try {
 }
 
 import userRoutes from "./presentation/routes/user.routes";
+import interfaceRoutes from "./presentation/routes/interface.routes";
 server.use('', userRoutes);
+server.use('', interfaceRoutes);
 
 
 server.get('/', (req, res) => {

@@ -22,7 +22,7 @@ const userController = new UserController(userService);
 router.use(BodyParserMiddleware.urlEncodedParser);
 
 
-// Routes that will implement csrf middleware
+// Routes that will implement csrf middleware and permission middleware
 router.get("/user/v1/admin/users", csrfMiddleware.authToken, async (req: Request, res: Response) => { 
     userController.getAllUsers(req, res)
 });

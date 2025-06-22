@@ -17,7 +17,7 @@
 
 
 import { createClient, RedisClientType } from "redis";
-import { RedisConfigModel } from "../../shared/models/redis.config";
+import { RedisConfigModel } from "../../shared/models/database/redis.config";
 
 
 class RedisConnection {

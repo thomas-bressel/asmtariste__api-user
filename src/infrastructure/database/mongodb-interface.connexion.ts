@@ -5,11 +5,9 @@
  * @author Thomas Bressel
  * @since 2025-06-22
  * 
- * @decorator Frozen - This class is frozen to prevent any modifications for security reasons
- * 
  * @remarks 
  * - Ensure that the required environment variables (`USERDB_PORT`, 
- *   `USERDB_DATA`, `USERDB_USER`, `USERDB_PASS`, `USERDB_HOST`) are set.
+ *   `USERDB_DATA`, `USERDB_USER`, `USERDB_PASS`, `USERDB_HOST`) are set. 
  * - The middleware throws errors if any of the required keys are missing.
  * - This class is immutable after compilation - no methods or properties can be added, removed, or modified.
  * - Protected against malicious code injection and accidental modifications.
@@ -18,9 +16,7 @@
  */
 
 import { MongoClient, Db } from 'mongodb';
-import { Frozen } from '../../shared/utils/decorators/security.decorator';
 
-@Frozen
 class MongoDBInterfaceModule {
   private static client: MongoClient;
   private static database: Db;
@@ -34,12 +30,16 @@ class MongoDBInterfaceModule {
   public static async getConnectionPool(): Promise<Db> {
     if (!this.database) {
       try {
-        const uri = `mongodb://${this.username}:${this.password}@${this.host}:${this.listenPort}/${this.dataName}`;
-        console.log("Mongo DB uri", uri)
+        // URI avec authentification sur la base admin
+        const uri = (this.username && this.password) 
+          ? `mongodb://${this.username}:${this.password}@${this.host}:${this.listenPort}/${this.dataName}?authSource=admin`
+          : `mongodb://${this.host}:${this.listenPort}/${this.dataName}`;
+        
         this.client = new MongoClient(uri);
         
         await this.client.connect();
         this.database = this.client.db(this.dataName);
+        console.log("MongoDB connection successful");
       } catch (error) {
         console.error("Error connecting to MongoDB: ", error);
         throw error;

@@ -20,7 +20,7 @@
 
 import mysql, { Pool } from 'mysql2';
 import { Frozen } from '../../shared/utils/decorators/security.decorator'
-import { DbConfig } from '../../shared/models/mysql.config';
+import { DbConfig } from '../../shared/models/database/mysql.config';
 
 
 @Frozen
