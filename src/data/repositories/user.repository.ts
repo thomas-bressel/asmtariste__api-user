@@ -1,4 +1,4 @@
-import MySQLUserConnection from "../../infrastructure/database/mysql-user.connection";
+import MySQLUserConnexion from "../../infrastructure/database/mysql-user.connexion";
 import RedisConnection from "../../infrastructure/cache/redis.connection"
 
 import { createPool, Pool } from "mysql2/promise";
@@ -11,7 +11,7 @@ class UserRepository {
   private userQueries: UserQueries;
 
   constructor() {
-    this.poolUser = createPool(MySQLUserConnection.getDbConfig());
+    this.poolUser = createPool(MySQLUserConnexion.getDbConfig());
     this.userQueries = new UserQueries();
   }
 

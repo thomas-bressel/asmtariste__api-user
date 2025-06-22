@@ -72,7 +72,7 @@ class UserController {
       const createSessionDTO = new CreateSessionDTO();
       createSessionDTO.nickname = req.body.nickname;
       createSessionDTO.password = req.body.password;
-
+      
       // check input DTO with class validator 
       const errors = await validate(createSessionDTO);
       if (errors.length > 0) {

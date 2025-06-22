@@ -20,7 +20,7 @@ import { Request, Response, NextFunction } from "express";
 
 // Database imports
 import { createPool, Pool } from "mysql2/promise";
-import MySQLUserConnexion from "../../infrastructure/database/mysql-user.connection";
+import MySQLUserConnexion from "../../infrastructure/database/mysql-user.connexion";
 import { PermissionQueries } from "./permission.queries";
 
 

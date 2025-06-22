@@ -24,7 +24,7 @@ import { DbConfig } from '../../shared/models/mysql.config';
 
 
 @Frozen
-class MySQLUserConnection {
+class MySQLUserConnexion {
   private static poolUser: Pool;
 
 
@@ -165,4 +165,4 @@ class MySQLUserConnection {
 
 }
 
-export default MySQLUserConnection;
+export default MySQLUserConnexion;
