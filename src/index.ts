@@ -41,9 +41,10 @@ try {
 
 import userRoutes from "./presentation/routes/user.routes";
 import interfaceRoutes from "./presentation/routes/interface.routes";
+import permissionRoutes from "./presentation/routes/permission.routes"
 server.use('', userRoutes);
 server.use('', interfaceRoutes);
-
+server.use('',permissionRoutes)
 
 server.get('/', (req, res) => {
   res.send('Asmtariste API public route');

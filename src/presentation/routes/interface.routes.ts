@@ -6,6 +6,9 @@ import InterfaceController  from '../controllers/interface.controller';
 import InterfaceService from '../../data/services/interface.service';
 import InterfaceRepository from "../../data/repositories/interface.repository";
 
+import PermissionService from "../../data/services/permission.service";
+import PermissionRepository from "../../data/repositories/permission.repository";
+
 // Middlewares import
 import BodyParserMiddleware from "../middlewares/body-parser.middleware";
 import CsrfMiddleware from "../middlewares/csrf.middleware";
@@ -17,13 +20,15 @@ const permissionMiddleware = new PermissionMiddleware();
 
 const interfaceRepository = new InterfaceRepository()
 const interfaceService = new InterfaceService(interfaceRepository)
-const interfaceController = new InterfaceController(interfaceService);
+const permissionRepository = new PermissionRepository();
+const permissionService = new PermissionService(permissionRepository);
+const interfaceController = new InterfaceController(interfaceService, permissionService);
 
 router.use(BodyParserMiddleware.urlEncodedParser);
 
 
 // Routes that will implement csrf middleware
-router.get("/user/v1/admin/interface", async (req: Request, res: Response) => {
+router.get("/user/v1/admin/interface", csrfMiddleware.authToken, async (req: Request, res: Response) => {
     interfaceController.getDefaultInterfaceByType(req, res)
 });
 
