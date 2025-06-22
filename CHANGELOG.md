@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.6.0-beta] - 2025-06-22
+### Added
+ - Create new database MongoDb to store default interface
+ - Create a new service to filter interface item with user permissions
+ - Create a new route to get interface item from database 
+
+
 ## [1.5.1-beta] - 2025-06-19
 ### Patch
  - Fix csrf middleware in refreshToken method
