@@ -7,7 +7,7 @@ import { PermissionQueries } from '../../src/presentation/middlewares/permission
 
 
 jest.mock('mysql2/promise');
-jest.mock('../../src/infrastructure/database/mysql-user.connection');
+jest.mock('../../src/infrastructure/database/mysql-user.connexion');
 jest.mock('../../src/presentation/middlewares/permission.queries');
 
 const mockCreatePool = require('mysql2/promise').createPool as jest.MockedFunction<typeof import('mysql2/promise').createPool>;
