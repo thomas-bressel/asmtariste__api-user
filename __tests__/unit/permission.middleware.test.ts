@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { Pool } from 'mysql2/promise';
 import PermissionMiddleware from '../../src/presentation/middlewares/permission.middleware'
-import MySQLUserConnexion from '../../src/infrastructure/database/mysql-user.connection';
+import MySQLUserConnexion from '../../src/infrastructure/database/mysql-user.connexion';
 import { PermissionQueries } from '../../src/presentation/middlewares/permission.queries';
 
 
@@ -43,10 +43,12 @@ describe('PermissionMiddleware', () => {
         // Setup des mocks
         mockCreatePool.mockReturnValue(mockPool);
         mockMySQLUserConnexion.getDbConfig.mockReturnValue({
+            connectionLimit: 100,
             host: 'localhost',
             user: 'test',
             password: 'test',
-            database: 'test'
+            database: 'test',
+            port: 3360
         });
         mockPermissionQueries.getUserPermissionsByUuid.mockReturnValue(
             `SELECT DISTINCT
