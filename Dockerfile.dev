@@ -1,24 +1,9 @@
 FROM node:22-slim
-
 WORKDIR /app
-
-# Installer pnpm
 RUN npm install -g pnpm
-
-# Installer les outils de développement globalement
 RUN npm install -g ts-node nodemon
-
-# Copier les fichiers de configuration des dépendances
 COPY package.json pnpm-lock.yaml ./
-
-# Copier la configuration TypeScript
 COPY tsconfig.json ./
-
-# Installer toutes les dépendances (incluant devDependencies)
 RUN pnpm install
-
-# Exposer le port
 EXPOSE 5002
-
-# Commande de développement avec hot reload
 CMD ["npm", "run", "dev"]

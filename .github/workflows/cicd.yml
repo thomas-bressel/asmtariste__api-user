@@ -43,13 +43,13 @@ jobs:
           echo "🚀 Starting deployment..."
                    
           # Vérifier si le dossier existe
-          if [ ! -d "$HOME/asmtariste/asmtariste__api-user" ]; then
-            echo "❌ Directory $HOME/asmtariste/asmtariste__api-user does not exist!"
+          if [ ! -d "$HOME/asmtariste/api-user" ]; then
+            echo "❌ Directory $HOME/asmtariste/api-user does not exist!"
             exit 1
           fi
           
           # Aller dans le dossier du projet
-          cd ~/asmtariste/asmtariste__api-user
+          cd ~/asmtariste/api-user
           echo "📍 Now in: $(pwd)"
           
           # Forcer la mise à jour (écraser les modifications locales)
