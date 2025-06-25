@@ -47,8 +47,8 @@ jobs:
         context: .
         push: true
         tags: |
-          ${{ secrets.DOCKERHUB_USERNAME }}/asmtariste-user-api:latest
-          ${{ secrets.DOCKERHUB_USERNAME }}/asmtariste-user-api:${{ github.sha }}
+          ${{ secrets.DOCKERHUB_USERNAME }}/asmtariste-api-user:latest
+          ${{ secrets.DOCKERHUB_USERNAME }}/asmtariste-api-user:${{ github.sha }}
         platforms: linux/amd64,linux/arm64
       
     - name: Deploy to VPS
