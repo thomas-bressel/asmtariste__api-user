@@ -1,7 +1,7 @@
 /**
  * Middleware for handling permission validation.
  * 
- * @version 1.0.1
+ * @version 1.0.2
  * @author [Thomas Bressel]
  * @since 2025-01-01
  * 
@@ -64,6 +64,7 @@ class PermissionMiddleware {
             try {
                 // Extract user UUID from res.locals (set by CSRF middleware)
                 const userUuid = res.locals?.uuid;
+
                 if (!userUuid) {
                     res.status(401).json({
                         error: 'User not authenticated',
@@ -75,11 +76,12 @@ class PermissionMiddleware {
 
                 // Check if user has the required permission
                 const userPermissions = await this.getPermissionsByUuid(userUuid);
+                
                 if (!this.hasPermission(userPermissions, requiredPermission)) {
                     res.status(403).json({
                         error: 'Insufficient permissions',
                         code: 'PERMISSION_DENIED',
-                        message: `Permission '${requiredPermission}' is required for this action`
+                        message: `Permissions insufisantes pour accéder aux données`
                     });
                     return;
                 }
