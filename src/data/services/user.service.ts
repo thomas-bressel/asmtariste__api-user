@@ -169,6 +169,31 @@ class UserService {
     return await this.userRepository.isUserConnected(decoded.uuid);
   }
 
+
+
+  /**
+   * Delete uuid from cache to know if the user is connected 
+   * @param decoded 
+   * @returns 
+   */
+  public async deleteSession(decoded: DecodedToken): Promise<boolean> {
+
+    try {
+      const isConnected = await this.userRepository.isUserConnected(decoded.uuid);
+      if (!isConnected) return false;
+      
+      const isDeleted = await this.userRepository.deleteSession(decoded.uuid);
+      if (!isDeleted) return false;
+
+
+      return true;
+    } catch (error) {
+      console.error("Error in UserService - storeSession :", error);
+      throw new Error("Impossible to stock the session");
+    }
+
+  }
+
 }
 
 export default UserService;

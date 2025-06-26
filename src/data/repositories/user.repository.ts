@@ -53,7 +53,6 @@ class UserRepository {
 
 
 
-
   /**
    * Get the list of all user from de database the the content of their role
    * @returns 
@@ -75,8 +74,6 @@ class UserRepository {
       if (connection) connection.release();
     }
   }
-
-
 
 
 
@@ -144,6 +141,7 @@ class UserRepository {
   }
 
 
+
   /**
    * Method to Check is User has an active session
    * @param uuid 
@@ -162,6 +160,37 @@ class UserRepository {
     } catch (error) {
       console.error("Error checking user connection:", error);
       // Considere is not connected
+      return false;
+    }
+  }
+
+
+
+  /**
+   * Method to Delete Session if User has an active session
+   * @param uuid 
+   * @returns 
+   */
+  public async deleteSession(uuid: string): Promise<boolean> {
+    const redisClient = RedisConnection.getClient;
+
+    try {
+      if (!redisClient.isOpen) await RedisConnection.connect();
+
+      // Check is user have an active session
+      const sessionId = await redisClient.get(`user:${uuid}:session`);
+
+      const deleteSession = await redisClient.del(`session:${sessionId}`);
+      if (!deleteSession) return false;
+      
+      const deleteUuid = await redisClient.del(`user:${uuid}:session`);
+      if (!deleteUuid) return false;
+      
+      return true;
+
+    } catch (error) {
+      console.error("Error checking user active session:", error);
+      // Considere is not deconnected
       return false;
     }
   }

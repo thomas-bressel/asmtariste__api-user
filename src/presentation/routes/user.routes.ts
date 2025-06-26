@@ -29,6 +29,9 @@ router.get("/user/v1/admin/users", csrfMiddleware.authToken, async (req: Request
 router.post("/user/v1/admin/login", async (req: Request, res: Response) => {
     userController.createSession(req, res)
 });
+router.get("/user/v1/admin/logout", csrfMiddleware.authToken, async (req: Request, res: Response) => {
+    userController.deleteSession(req, res)
+});
 router.post("/user/v1/admin/refresh", csrfMiddleware.authRefresh, async (req: Request, res: Response) => {
     userController.refreshSession(req, res)
 });

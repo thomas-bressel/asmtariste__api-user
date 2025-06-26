@@ -151,6 +151,7 @@ class UserController {
       if (!isValid) {
         return res.status(401).json({ 
           success: false, 
+          code: 'SESSION_EXPIRED', 
           message: "Session expired or invalid" 
         });
       }
@@ -166,6 +167,49 @@ class UserController {
         message: "Internal server error" 
       });
     }
+  }
+
+
+
+  /**
+   * Delete a session
+   * @param req 
+   * @param res 
+   * @returns 
+   */
+  public async deleteSession(req: Request, res: Response): Promise<Response> {
+
+    try {
+      const decoded = res.locals as DecodedToken;
+      const isDeleted = await this.userService.deleteSession(decoded);  
+
+      if (isDeleted) {
+        return res.status(200).json({
+          success: true,
+          code: 'SESSION_DELETED', 
+          message: "La session a été supprimé"
+        })
+      }
+
+      return res.status(200).json({
+        success: false,
+        code: 'SESSION_DELETED', 
+        message: "La session n'a pas pu être supprimer"
+      })
+
+
+    } catch(error) {
+      console.error('Error deleting session:', error);
+      return res.status(500).json({ 
+        success: false, 
+        message: "Internal server error" 
+      });
+    }
+
+
+
+
+
   }
 }
 

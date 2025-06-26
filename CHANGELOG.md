@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.7.0-beta] - 2025-06-22
+### Added
+  - Create a new route to delete user session from cache and from client 
+
+
 ## [1.6.0-beta] - 2025-06-22
 ### Added
  - Create new database MongoDb to store default interface
