@@ -1,7 +1,7 @@
 /**
  * Middleware for handling permission validation.
  * 
- * @version 1.0.0
+ * @version 1.0.1
  * @author [Thomas Bressel]
  * @since 2025-01-01
  * 

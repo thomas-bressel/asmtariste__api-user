@@ -9,11 +9,11 @@ export class PermissionQueries {
             SELECT DISTINCT
                 p.code
             FROM 
-                _user u
+                users u
             JOIN 
-                to_permit tp ON u.id_role = tp.id_role
+                role_permission rp ON u.id_role = rp.id_role
             JOIN 
-                permission p ON tp.id_permission = p.id_permission
+                permission p ON rp.id_permission = p.id_permission
             WHERE 
                 u.uuid = ? 
             AND
