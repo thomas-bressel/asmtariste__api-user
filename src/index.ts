@@ -4,6 +4,8 @@
 **/
 // Express importation
 import express, { Express } from "express";
+import path from 'path';
+
 
 // Environnement library need
 require('dotenv').config();
@@ -44,11 +46,19 @@ import interfaceRoutes from "./presentation/routes/interface.routes";
 import permissionRoutes from "./presentation/routes/permission.routes"
 server.use('', userRoutes);
 server.use('', interfaceRoutes);
-server.use('',permissionRoutes)
+server.use('', permissionRoutes);
 
 server.get('/', (req, res) => {
   res.send('Asmtariste API public route');
-}
-);
+});
+
+
+server.use('/avatars', express.static(path.join(__dirname, '../uploads/avatars'), {
+  maxAge: '7d',
+  etag: true
+}));
+
+
+
 
 export default server;

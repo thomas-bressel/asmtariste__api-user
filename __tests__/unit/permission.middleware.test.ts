@@ -114,21 +114,21 @@ describe('PermissionMiddleware', () => {
             const requiredPermission = 'DELETE_USERS';
             const userUuid = 'user-123';
             const userPermissions = [{ code: 'READ_USERS' }, { code: 'WRITE_POSTS' }];
-
+        
             mockResponse.locals = { uuid: userUuid };
             mockConnection.query.mockResolvedValue([userPermissions]);
-
+        
             const checkMiddleware = middleware.check(requiredPermission);
-
+        
             // Act
             await checkMiddleware(mockRequest as Request, mockResponse as Response, mockNext);
-
+        
             // Assert
             expect(mockResponse.status).toHaveBeenCalledWith(403);
             expect(mockResponse.json).toHaveBeenCalledWith({
                 error: 'Insufficient permissions',
                 code: 'PERMISSION_DENIED',
-                message: "Permission 'DELETE_USERS' is required for this action"
+                message: "Permissions insufisantes pour accéder aux données"
             });
             expect(mockNext).not.toHaveBeenCalled();
         });
@@ -164,22 +164,22 @@ describe('PermissionMiddleware', () => {
             // Arrange
             const requiredPermission = 'READ_USERS';
             const userUuid = 'user-123';
-            const userPermissions: any[] = []; // Aucune permission
-
+            const userPermissions: any[] = [];
+        
             mockResponse.locals = { uuid: userUuid };
             mockConnection.query.mockResolvedValue([userPermissions]);
-
+        
             const checkMiddleware = middleware.check(requiredPermission);
-
+        
             // Act
             await checkMiddleware(mockRequest as Request, mockResponse as Response, mockNext);
-
+        
             // Assert
             expect(mockResponse.status).toHaveBeenCalledWith(403);
             expect(mockResponse.json).toHaveBeenCalledWith({
                 error: 'Insufficient permissions',
                 code: 'PERMISSION_DENIED',
-                message: "Permission 'READ_USERS' is required for this action"
+                message: "Permissions insufisantes pour accéder aux données" // Message correct
             });
             expect(mockNext).not.toHaveBeenCalled();
         });

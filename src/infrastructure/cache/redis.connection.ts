@@ -23,14 +23,6 @@ import { RedisConfigModel } from "../../shared/models/database/redis.config";
 class RedisConnection {
   private static client: RedisClientType | null = null;
 
-
-
-
-  private static get isUsingSocket(): boolean {
-    return Boolean(process.env.REDIS_SOCKET);
-  }
-
-
   /**
    * Get the redis config
    */
@@ -81,6 +73,14 @@ class RedisConnection {
       this.client.on("error", (error) => console.error("Redis error :", error));
     }
     return this.client;
+  }
+
+
+  /**
+ * 
+ */
+  private static get isUsingSocket(): boolean {
+    return Boolean(process.env.REDIS_SOCKET);
   }
 
 

@@ -28,9 +28,6 @@ class InterfaceController {
             const { type } = req.query;
             const uuid: string = res.locals.uuid;
 
-            console.log('type: ',type)
-            console.log('uuid: ',uuid)
-
             // request query data validation
             if (!type || typeof type !== 'string') return res.status(400).json({ message: "Paramètre 'type' manquant ou invalide" });
 
@@ -48,7 +45,7 @@ class InterfaceController {
             // Get default interface from database
             const defaultInterface = await this.interfaceService.getDefaultInterfaceByType('private', type);
             if (!defaultInterface) return res.status(404).json({ message: "Interface non trouvée" });
-            console.log('Interface par defaut : ',defaultInterface)
+            // console.log('Interface par defaut : ',defaultInterface)
 
             // Filter interface depending on the role and permissions
             const filteredInterface = this.interfaceService.filterInterfaceByPermissions(userPermissions, defaultInterface);

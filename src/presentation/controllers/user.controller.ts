@@ -34,6 +34,7 @@ class UserController {
    */
   public async getAllUsers(req: Request, res: Response): Promise<Response> {
     const option = req.query.option as string;
+    console.log('Valeur que query.option : ',option)
 
     try {
       if (!option) return res.status(400).json({ message: `Paramètre '${option}' non reconnu` });

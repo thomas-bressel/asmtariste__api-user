@@ -74,26 +74,37 @@ describe('CsrfMiddleware', () => {
    
             it('should reject request when token is missing', () => {
                 // Arrange
-                mockRequest.headers = {}; // Pas d'authorization header
-    
+                mockRequest.headers = {};
+            
                 // Act
                 middleware.authToken(mockRequest as Request, mockResponse as Response, mockNext);
-    
+            
                 // Assert
-                expect(mockNext).toHaveBeenCalledWith(new Error('Token manquant ou invalide'));
-                expect(mockJwt.verify).not.toHaveBeenCalled();
+                expect(mockResponse.status).toHaveBeenCalledWith(401);
+                expect(mockResponse.json).toHaveBeenCalledWith({
+                    error: 'Token missing or invalid',
+                    code: 'TOKEN_MISSING',
+                    message: 'Authentication token is required'
+                });
+                expect(mockNext).not.toHaveBeenCalled();
             });
+            
       
             it('should reject request when authorization header is malformed', () => {
                 // Arrange
-                mockRequest.headers = { authorization: 'InvalidFormat' }; // Pas de Bearer
-    
+                mockRequest.headers = { authorization: 'InvalidFormat' };
+            
                 // Act
                 middleware.authToken(mockRequest as Request, mockResponse as Response, mockNext);
-    
+            
                 // Assert
-                expect(mockNext).toHaveBeenCalledWith(new Error('Token manquant ou invalide'));
-                expect(mockJwt.verify).not.toHaveBeenCalled();
+                expect(mockResponse.status).toHaveBeenCalledWith(401);
+                expect(mockResponse.json).toHaveBeenCalledWith({
+                    error: 'Token missing or invalid',
+                    code: 'TOKEN_MISSING',
+                    message: 'Authentication token is required'
+                });
+                expect(mockNext).not.toHaveBeenCalled();
             });
     
             it('should handle expired token correctly', () => {
@@ -161,7 +172,8 @@ describe('CsrfMiddleware', () => {
     describe('authRefresh', () => {
         beforeEach(() => {
             mockRequest = {
-                body: {}
+                body: {},
+                headers: {} 
             };
         });
 
@@ -169,15 +181,15 @@ describe('CsrfMiddleware', () => {
             // Arrange
             const validRefreshToken = 'valid.refresh.token';
             const decodedPayload = { userId: 123, role: 'user' };
-
+    
             mockRequest.body = { refreshToken: validRefreshToken };
             mockJwt.verify.mockImplementation((token, secret, callback) => {
                 (callback as any)(null, decodedPayload);
             });
-
+    
             // Act
             middleware.authRefresh(mockRequest as Request, mockResponse as Response, mockNext);
-
+    
             // Assert
             expect(mockJwt.verify).toHaveBeenCalledWith(validRefreshToken, 'test-refresh-secret', expect.any(Function));
             expect(mockResponse.locals).toEqual(decodedPayload);
@@ -187,10 +199,10 @@ describe('CsrfMiddleware', () => {
         it('should reject when refresh token is missing', () => {
             // Arrange
             mockRequest.body = {}; // Pas de refreshToken
-
+    
             // Act
             middleware.authRefresh(mockRequest as Request, mockResponse as Response, mockNext);
-
+    
             // Assert
             expect(mockResponse.status).toHaveBeenCalledWith(401);
             expect(mockResponse.json).toHaveBeenCalledWith({
@@ -249,12 +261,12 @@ describe('CsrfMiddleware', () => {
             // Arrange
             delete process.env.JWT_REFRESH_SECRET_KEY;
             mockRequest.body = { refreshToken: 'some.token' };
-
+    
             // Act & Assert
             expect(() => {
                 middleware.authRefresh(mockRequest as Request, mockResponse as Response, mockNext);
             }).toThrow('Error: Missing refresh key');
-
+    
             expect(mockNext).not.toHaveBeenCalled();
         });
     });
