@@ -13,6 +13,8 @@ import PermissionRepository from "../../data/repositories/permission.repository"
 import BodyParserMiddleware from "../middlewares/body-parser.middleware";
 import CsrfMiddleware from "../middlewares/csrf.middleware";
 import PermissionMiddleware from "../middlewares/permission.middleware";
+import RoleService from "../../data/services/role.service";
+import RoleRepository from "../../data/repositories/role.repository";
 
 const router = express.Router();
 const csrfMiddleware = new CsrfMiddleware();
@@ -20,8 +22,13 @@ const permissionMiddleware = new PermissionMiddleware();
 
 const interfaceRepository = new InterfaceRepository()
 const interfaceService = new InterfaceService(interfaceRepository)
+
+const roleRepository = new RoleRepository();
+const roleService = new RoleService(roleRepository);
+
 const permissionRepository = new PermissionRepository();
-const permissionService = new PermissionService(permissionRepository);
+const permissionService = new PermissionService(permissionRepository, roleService);
+
 const interfaceController = new InterfaceController(interfaceService, permissionService);
 
 router.use(BodyParserMiddleware.urlEncodedParser);

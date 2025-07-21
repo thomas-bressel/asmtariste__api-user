@@ -6,4 +6,12 @@ export class PermissionQueries extends PermissionBaseQueries {
         return this.getPermissionsByUserUuidQuery();
     }
 
+    public static buldRoleCaseStatement(slug: string): string {
+        return this.roleCaseStatement(slug);
+    }
+
+    public static getPermissionsByRole(roleCaseStatements: string): string {
+        return this.getPermissionsByRoleQuery(roleCaseStatements);
+    }
+
 }

@@ -17,4 +17,30 @@ export abstract class PermissionBaseQueries {
     }
 
 
+    protected static roleCaseStatement(slug: string): string {
+        return `CASE WHEN SUM(CASE WHEN r.role_slug = '${slug}' THEN 1 ELSE 0 END) > 0 THEN '✅' ELSE '❌' END AS ${slug}`;
+    }
+
+
+    protected static getPermissionsByRoleQuery(roleCaseStatements: string): string {
+        return ` SELECT
+                      p.id_permission,
+                      p.code, 
+                      p.name AS permission_name,
+                      p.description,
+                      p.category,
+                      ${roleCaseStatements}
+                  FROM 
+                    permission p
+                  LEFT JOIN 
+                    role_permission rp ON p.id_permission = rp.id_permission
+                  LEFT JOIN 
+                    role r ON rp.id_role = r.id_role
+                  GROUP BY 
+                    p.id_permission, p.name, p.description, p.category
+                  ORDER BY 
+                    p.id_permission, p.category, p.name`;
+    }
+
+
 }
