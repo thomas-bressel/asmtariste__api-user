@@ -32,4 +32,12 @@ router.get("/user/v1/admin/permissions", csrfMiddleware.authToken, permissionsMi
     permissionController.getPermissions(req, res)
 });
 
+router.put("/user/v1/admin/permissions/update", csrfMiddleware.authToken, 
+    permissionsMiddleware.check("VIEW_ALL_PERMISSIONS"), permissionsMiddleware.check("UPDATE_PERMISSION"), 
+    permissionsMiddleware.check("DELETE_PERMISSION"), permissionsMiddleware.check("CREATE_PERMISSION"), 
+    async (req: Request, res: Response) => { 
+    permissionController.updatePermissionsByRole(req, res)
+});
+
+
 export default router;

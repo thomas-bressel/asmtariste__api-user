@@ -14,4 +14,11 @@ export class PermissionQueries extends PermissionBaseQueries {
         return this.getPermissionsByRoleQuery(roleCaseStatements);
     }
 
+    public static insertPermission(): string {
+        return this.insertPermissionQuery();
+    }
+    public static deletePermission(): string {
+        return this.deletePermissionQuery();
+    }
+
 }

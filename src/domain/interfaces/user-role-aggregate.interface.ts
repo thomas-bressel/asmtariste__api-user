@@ -22,11 +22,11 @@ class UserRole {
         rawData.hash_password,
         rawData.firstname,
         rawData.lastname,
-        rawData.avatar,
         rawData.registration_date,
         rawData.last_login,
         rawData.is_activated,
-        rawData.id_role
+        rawData.id_role,
+        rawData.avatar,
       );
   
       const role = new Role(

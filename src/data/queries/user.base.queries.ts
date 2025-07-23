@@ -15,5 +15,16 @@ export abstract class UserBaseQueries {
                 WHERE u.nickname = ?`;
     }
 
+    protected createUserQuery(): string {
+        return `INSERT INTO users (uuid, nickname, firstname, lastname, email, hash_password, avatar, is_activated, id_role)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+    }
+
+    protected  isNicknameExistsQuery(): string {
+        return `SELECT * FROM users WHERE nickname = ?`;
+    }
+    protected  isEmailExistsQuery(): string {
+        return `SELECT * FROM users WHERE email = ?`;
+    }
 
 }

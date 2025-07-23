@@ -6,9 +6,11 @@ import UserService from "../../data/services/user.service";
 
 // Libraries importation
 import { validate } from 'class-validator';
+import { plainToInstance } from 'class-transformer';
 
 // DTO importations
 import { CreateSessionDTO } from "../../data/dtos/create-session.dto";
+import { ValidateCreateUserDTO } from "../../data/dtos/validate-create-user.dtos";
 
 import { DecodedToken } from "../models/csrf.model";
 
@@ -18,6 +20,7 @@ class UserController {
 
   constructor(userService: UserService) {
     this.userService = userService;
+   
   }
 
 
@@ -34,7 +37,7 @@ class UserController {
    */
   public async getAllUsers(req: Request, res: Response): Promise<Response> {
     const option = req.query.option as string;
-    console.log('Valeur que query.option : ',option)
+    console.log('Valeur que query.option : ', option)
 
     try {
       if (!option) return res.status(400).json({ message: `Paramètre '${option}' non reconnu` });
@@ -73,7 +76,7 @@ class UserController {
       const createSessionDTO = new CreateSessionDTO();
       createSessionDTO.nickname = req.body.nickname;
       createSessionDTO.password = req.body.password;
-      
+
       // check input DTO with class validator 
       const errors = await validate(createSessionDTO);
       if (errors.length > 0) {
@@ -88,27 +91,27 @@ class UserController {
       const authSession = await this.userService.createSession(createSessionDTO.nickname, createSessionDTO.password);
       if (!authSession) throw new Error("Controller: Aucune informations trouvée pour cet utilisateur.");
 
-       // Store the session into redis
-       const storeSession = await this.userService.storeSession(authSession);
-       if (storeSession !== "OK") throw new Error("Résultat vide");
+      // Store the session into redis
+      const storeSession = await this.userService.storeSession(authSession);
+      if (storeSession !== "OK") throw new Error("Résultat vide");
 
       return res.status(200).json(authSession);
 
     }
     catch (error) {
       const errorMessage = error instanceof Error ? error.message : "Erreur interne";
-      
-      if (errorMessage.includes("Aucun utilisateur trouvé") 
+
+      if (errorMessage.includes("Aucun utilisateur trouvé")
         || errorMessage.includes("Mot de passe incorrect")) {
-        return res.status(401).json({ 
+        return res.status(401).json({
           message: "Identifiants incorrects",
-          code: "INVALID_CREDENTIALS" 
+          code: "INVALID_CREDENTIALS"
         });
       }
-      
-      return res.status(500).json({ 
+
+      return res.status(500).json({
         message: errorMessage,
-        code: "INTERNAL_ERROR" 
+        code: "INTERNAL_ERROR"
       });
     }
   }
@@ -148,24 +151,24 @@ class UserController {
       const decoded = res.locals as DecodedToken;
 
       // Check if the user has an active session
-      const isValid = await this.userService.verifySession(decoded);    
+      const isValid = await this.userService.verifySession(decoded);
       if (!isValid) {
-        return res.status(401).json({ 
-          success: false, 
-          code: 'SESSION_EXPIRED', 
-          message: "Session expired or invalid" 
+        return res.status(401).json({
+          success: false,
+          code: 'SESSION_EXPIRED',
+          message: "Session expired or invalid"
         });
       }
-      
-      return res.status(200).json({ 
-        success: true, 
+
+      return res.status(200).json({
+        success: true,
       });
-      
+
     } catch (error) {
       console.error('Error verifying session:', error);
-      return res.status(500).json({ 
-        success: false, 
-        message: "Internal server error" 
+      return res.status(500).json({
+        success: false,
+        message: "Internal server error"
       });
     }
   }
@@ -182,28 +185,28 @@ class UserController {
 
     try {
       const decoded = res.locals as DecodedToken;
-      const isDeleted = await this.userService.deleteSession(decoded);  
+      const isDeleted = await this.userService.deleteSession(decoded);
 
       if (isDeleted) {
         return res.status(200).json({
           success: true,
-          code: 'SESSION_DELETED', 
+          code: 'SESSION_DELETED',
           message: "La session a été supprimé"
         })
       }
 
       return res.status(200).json({
         success: false,
-        code: 'SESSION_DELETED', 
+        code: 'SESSION_DELETED',
         message: "La session n'a pas pu être supprimer"
       })
 
 
-    } catch(error) {
+    } catch (error) {
       console.error('Error deleting session:', error);
-      return res.status(500).json({ 
-        success: false, 
-        message: "Internal server error" 
+      return res.status(500).json({
+        success: false,
+        message: "Internal server error"
       });
     }
 
@@ -212,6 +215,44 @@ class UserController {
 
 
   }
+
+
+  
+
+/**
+ * Create a new User
+ * @param req 
+ * @param res 
+ * @returns 
+ */
+  public async createUser(req: Request, res: Response): Promise<Response> {
+
+    const user = req.body;
+    if (!user) throw new Error("Aucune informations trouvée pour cet utilisateur.");
+
+    // Validate input data from req.body
+    const dto = plainToInstance(ValidateCreateUserDTO, req.body);
+    const errors = await validate(dto);
+    if (errors.length > 0) return res.status(400).json({ errors });
+
+    try {
+
+      const response = await this.userService.createUser(dto);
+      if (!response) throw new Error("Erreur lors de la création de l'utilisateur");
+
+      return res.status(200).json(response);
+    } catch (error) {
+      console.error("Erreur dans UserController - createUser :", error);
+      return res.status(500).json({ message: (error instanceof Error ? error.message : "Erreur interne du serveur") });
+    }
+
+  }
+
+
+
+
+
+  
 }
 
 export default UserController;

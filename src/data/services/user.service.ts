@@ -12,17 +12,27 @@ import { UserRoleResponseDTO } from "../dtos/user-role-response.dto";
 import { Payload } from "../models/payload.model";
 import { CsrfTokenType, DecodedToken } from "../../presentation/models/csrf.model";
 
+//DTO import
+import { ValidateCreateUserDTO } from "../dtos/validate-create-user.dtos";
+
 // Library imports
 import bcrypt from 'bcryptjs';
+import { randomBytes } from "crypto";
 import jwt from 'jsonwebtoken';
 import { v4 as uuidv4 } from 'uuid';
+
+import { MailOptionsModel } from "../../presentation/models/mail.model";
+import MailService from "../../data/services/mail.service";
+
 
 
 class UserService {
   private userRepository: UserRepository;
+  private mailService: MailService;
 
-  constructor(userRepository: UserRepository) {
+  constructor(userRepository: UserRepository, mailService: MailService) {
     this.userRepository = userRepository;
+    this.mailService = mailService;
   }
 
 
@@ -181,7 +191,7 @@ class UserService {
     try {
       const isConnected = await this.userRepository.isUserConnected(decoded.uuid);
       if (!isConnected) return false;
-      
+
       const isDeleted = await this.userRepository.deleteSession(decoded.uuid);
       if (!isDeleted) return false;
 
@@ -193,6 +203,108 @@ class UserService {
     }
 
   }
+
+
+
+
+
+  /**
+   * Create a new user
+   * @param validatedData 
+   * @returns 
+   */
+  public async createUser(validatedData: ValidateCreateUserDTO): Promise<UserResponseDTO> {
+
+    // Check if the nickname already exists in database
+    const userResult = await this.userRepository.isNicknameExists(validatedData.nickname);
+    if (userResult) throw new Error("Le pseudo existe déjà");
+
+    // Check if the email already exists in database
+    const emailResult = await this.userRepository.isEmailExists(validatedData.email);
+    if (emailResult) throw new Error("L'email existe déjà");
+
+    // Generate a unique uuid
+    const uuid: string = uuidv4();
+
+    // generate a random password then hash
+    const password = this.generatePassword();
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // Build a new user
+    const createNewUser: User = new User(
+      null,
+      uuid,
+      validatedData.nickname,
+      validatedData.email,
+      hashedPassword,
+      "",
+      "",
+      new Date(),
+      new Date(),
+      false,
+      validatedData.id_role,
+      'default-avatar.webp'
+    )
+
+    // Create new user into database
+    const newUser = await this.userRepository.createUser(createNewUser);
+    if (!newUser) throw new Error("Erreur lors de la création de l'utilisateur");
+
+
+
+    // Send welcome email with error handling
+    try {
+      // Test SMTP connection first
+      const isConnected = await this.mailService.testConnection();
+      if (!isConnected) {
+        console.warn('⚠️ SMTP connection failed, but user created successfully');
+      } else {
+        // Create and send email
+        const emailOptions: MailOptionsModel = this.mailService.createEmailOptions(
+          createNewUser.email,
+          createNewUser.nickname,
+          password
+        );
+
+        const emailResponse = await this.mailService.sendMail(emailOptions);
+        this.mailService.stat(emailResponse);
+
+      }
+    } catch (emailError) {
+      console.error('❌ Failed to send welcome email:', emailError);
+    }
+
+
+    const userCreated = UserResponseDTO.fromEntity(createNewUser);
+
+    return userCreated;
+  }
+
+
+
+
+  /**
+   * Generate a random password secure and complex
+   * @param segments 
+   * @param segmentLength 
+   * @returns 
+   */
+  private generatePassword(segments = 4, segmentLength = 6): string {
+    const chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*";
+
+    const getRandomSegment = () =>
+      Array.from({ length: segmentLength })
+        .map(() => chars[randomBytes(1)[0] % chars.length])
+        .join("");
+
+    return Array.from({ length: segments })
+      .map(getRandomSegment)
+      .join("-");
+  };
+
+
+
+
 
 }
 

@@ -3,6 +3,7 @@ import { createPool, Pool } from "mysql2/promise";
 import { PermissionQueries } from "../queries/permission.queries";
 import PermissionEntity from "../../domain/entities/permission.entity";
 import { PermissionMapper } from "../mappers/permission.mapper";
+import Role from "src/domain/entities/role.entity";
 
 
 class PermissionRepository {
@@ -59,7 +60,7 @@ class PermissionRepository {
    * @param roleSlugs 
    * @returns 
    */
-  public async getPermissionsByRole(roleSlugs: string[]): Promise<any[]> {
+  public async getPermissionsByRole(roleSlugs: string[]): Promise<Role[]> {
     let connection;
     if (!(await this.isDatabaseReachable(this.poolUser))) throw new Error("DATABASE_UNREACHABLE");
 
@@ -85,7 +86,50 @@ class PermissionRepository {
 
 
 
-
+/**
+ * Update permissions by role
+ * @param updates 
+ * @returns 
+ */
+  public async updatePermissionsByRole(updates: { id_permission: number; id_role: number; hasPermission: boolean }[]): Promise<{ success: boolean, added: number, removed: number }[]> {
+    let connection;
+    if (!(await this.isDatabaseReachable(this.poolUser))) throw new Error("DATABASE_UNREACHABLE");
+  
+    try {
+      connection = await this.poolUser.getConnection();
+      await connection.beginTransaction();
+  
+      const inserts: [number, number][] = [];
+      const deletes: [number, number][] = [];
+  
+      for (const update of updates) {
+        if (update.hasPermission) {
+          inserts.push([update.id_role, update.id_permission]);
+        } else {
+          deletes.push([update.id_role, update.id_permission]);
+        }
+      }
+  
+      // INSERT IGNORE pour éviter les doublons
+      if (inserts.length > 0) {
+        await connection.query(PermissionQueries.insertPermission(), [inserts]);
+      }
+  
+      // DELETE WHERE IN pour les suppressions groupées
+      if (deletes.length > 0) { 
+        await connection.query(PermissionQueries.deletePermission(), [deletes]);
+      }
+  
+      await connection.commit();
+      return [{ success: true, added: inserts.length, removed: deletes.length }];
+    } catch (error) {
+      if (connection) await connection.rollback();
+      console.error("Erreur MySQL:", error);
+      throw new Error("DATABASE_ERROR");
+    } finally {
+      if (connection) connection.release();
+    }
+  }
 
 }
 

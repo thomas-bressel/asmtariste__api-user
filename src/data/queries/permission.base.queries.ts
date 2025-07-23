@@ -43,4 +43,13 @@ export abstract class PermissionBaseQueries {
     }
 
 
+    protected static insertPermissionQuery(): string {
+        return `INSERT IGNORE INTO  role_permission (id_role, id_permission) VALUES ?`;
+    }
+
+    protected static deletePermissionQuery(): string {
+        return `DELETE FROM role_permission WHERE (id_role, id_permission) IN (?)`;
+    }
+
+
 }

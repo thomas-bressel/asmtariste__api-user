@@ -6,6 +6,7 @@ import { UserQueries } from "../../data/queries/user.queries";
 import User from "../../domain/entities/user.entity";
 
 
+
 class UserRepository {
   private poolUser: Pool;
   private userQueries: UserQueries;
@@ -29,7 +30,7 @@ class UserRepository {
     }
   }
 
-  
+
   /**
    * Get the list of all user from de database
    * @returns 
@@ -182,10 +183,10 @@ class UserRepository {
 
       const deleteSession = await redisClient.del(`session:${sessionId}`);
       if (!deleteSession) return false;
-      
+
       const deleteUuid = await redisClient.del(`user:${uuid}:session`);
       if (!deleteUuid) return false;
-      
+
       return true;
 
     } catch (error) {
@@ -194,6 +195,95 @@ class UserRepository {
       return false;
     }
   }
+
+
+
+/**
+ * Add a new user into database
+ * @param createNewUser 
+ * @returns 
+ */
+  public async createUser(createNewUser: User): Promise<boolean> {
+    let connection;
+    if (!(await this.isDatabaseReachable(this.poolUser))) throw new Error("DATABASE_UNREACHABLE");
+
+    try {
+      connection = await this.poolUser.getConnection();
+      const [rows] = await connection.query<any[]>(this.userQueries.createUser(), [
+        createNewUser.uuid,
+        createNewUser.nickname,
+        createNewUser.firstname,
+        createNewUser.lastname,
+        createNewUser.email,
+        createNewUser.hash_password,
+        createNewUser.avatar,
+        createNewUser.is_activated,
+        createNewUser.id_role,
+      ]);
+      if (!rows || rows.length === 0) return false;
+      return true;
+    } catch (error) {
+      console.error("Erreur MySQL:", error);
+      throw error;
+    } finally {
+      if (connection) connection.release();
+    }
+
+  }
+
+
+
+
+/**
+ * Check if the nickname already exist in database
+ * @param nickname 
+ * @returns 
+ */
+  public async isNicknameExists(nickname: string): Promise<boolean> {
+    let connection;
+    if (!(await this.isDatabaseReachable(this.poolUser))) throw new Error("DATABASE_UNREACHABLE");
+
+    try {
+      connection = await this.poolUser.getConnection();
+      const [rows] = await connection.query<any[]>(this.userQueries.isNicknameExists(), [nickname]);
+      if (!rows || rows.length === 0) return false;
+      return true;
+    } catch (error) {
+      console.error("Erreur MySQL:", error);
+      throw error;
+    } finally {
+      if (connection) connection.release();
+    }
+  }
+
+
+
+
+
+/**
+ * Check if the email already exist in database
+ * @param email 
+ * @returns 
+ */
+  public async isEmailExists(email: string): Promise<boolean> {
+    let connection;
+    if (!(await this.isDatabaseReachable(this.poolUser))) throw new Error("DATABASE_UNREACHABLE");
+
+    try {
+      connection = await this.poolUser.getConnection();
+      const [rows] = await connection.query<any[]>(this.userQueries.isEmailExists(), [email]);
+      if (!rows || rows.length === 0) return false;
+      return true;
+    } catch (error) {
+      console.error("Erreur MySQL:", error);
+      throw error;
+    } finally {
+      if (connection) connection.release();
+    }
+
+  }
+
+
 
 
 }

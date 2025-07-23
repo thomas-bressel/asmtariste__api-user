@@ -31,7 +31,6 @@ class PermissionController {
             if (isUUID(option)) {
                 // Get and check its uuid from the query
                 if (!isUUID(option)) return res.status(400).json({ message: "option invalide" });
-                console.log('COUCOU')
                 const response = await this.permissionService.getPermissionsByUserUuid(option);
                 if (!response) return res.status(400).json({ message: "Aucune permission trouvée pour cet utilisateur." });
                 return res.status(200).json(response);
@@ -54,6 +53,26 @@ class PermissionController {
 
 
 
+/**
+ * Update Permissions
+ * @param req 
+ * @param res 
+ */
+  public async updatePermissionsByRole(req: Request, res: Response): Promise<Response> {
+    try {
+      const updates = req.body;
+      if (!Array.isArray(updates))  return res.status(400).json({ message: `Le format des données est invalide. Un tableau est attendu.` });
+
+      const response = await this.permissionService.updatePermissionsByRole(updates);
+      if (!response) return res.status(400).json({ message: "Aucune permission trouvée pour cet utilisateur." });
+
+      return res.status(200).json(response);
+    }
+    catch (error) {
+      console.error("Erreur dans PermissionController - updatePermissionsByRole :", error);
+      return res.status(500).json({ message: "Erreur interne du serveur" });
+    }
+  }
 }
 
 
