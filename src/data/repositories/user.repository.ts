@@ -42,7 +42,7 @@ class UserRepository {
     try {
       connection = await this.poolUser.getConnection();
       const [rows] = await connection.query<any[]>(this.userQueries.getAllUsers());
-      if (!rows || rows.length === 0) throw new Error("No users found");
+      if (!rows || rows.length === 0) throw new Error("Aucun utilisateur trouvé");
       return rows;
     } catch (error) {
       console.error("Erreur MySQL:", error);
@@ -51,6 +51,42 @@ class UserRepository {
       if (connection) connection.release();
     }
   }
+
+
+
+
+
+
+
+
+/**
+ * Get the list of all user from de database
+ * @param uuid 
+ * @returns 
+ */
+  public async getUserByUuid(uuid: string): Promise<User> {
+    let connection;
+    if (!(await this.isDatabaseReachable(this.poolUser))) throw new Error("DATABASE_UNREACHABLE");
+
+    try {
+      connection = await this.poolUser.getConnection();
+      const [rows] = await connection.query<any[]>(this.userQueries.getUserByUuid(), [uuid]);
+      if (!rows || rows.length === 0) throw new Error("Aucun utilisateur trouvé avec cet uuid");
+      return rows[0];
+
+    } catch (error) {
+      console.error("Erreur MySQL:", error);
+      throw error;
+    } finally {
+      if (connection) connection.release();
+    }
+
+  }
+
+
+
+
+
 
 
 
@@ -306,6 +342,32 @@ class UserRepository {
       if (connection) connection.release();
     }
   }
+
+
+
+
+
+
+
+  public async ghostUser(uuid: string): Promise<boolean> {
+    let connection;
+    if (!(await this.isDatabaseReachable(this.poolUser))) throw new Error("DATABASE_UNREACHABLE");
+
+    try {
+      connection = await this.poolUser.getConnection();
+      const [rows] = await connection.query<any[]>(this.userQueries.ghostUser(), [uuid]);
+      if (!rows || rows.length === 0) return false;
+      return true;
+    } catch (error) {
+      console.error("Erreur MySQL:", error);
+      throw error;
+    } finally {
+      if (connection) connection.release();
+    }
+
+  }
+
+
 
 }
 

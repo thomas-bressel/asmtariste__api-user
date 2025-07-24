@@ -20,6 +20,8 @@ import bcrypt from 'bcryptjs';
 import { randomBytes } from "crypto";
 import jwt from 'jsonwebtoken';
 import { v4 as uuidv4 } from 'uuid';
+import fs from "fs/promises";
+import path from "path";
 
 import { MailOptionsModel } from "../../presentation/models/mail.model";
 import MailService from "../../data/services/mail.service";
@@ -44,6 +46,21 @@ class UserService {
     const users: User[] = await this.userRepository.getAllUsers();
     return UserResponseDTO.fromEntities(users);
   }
+
+
+
+
+  /**
+   * Get user information by uuid
+   * @param uuid 
+   * @returns 
+   */
+  public async getUserByUuid(uuid: string): Promise<UserResponseDTO> {
+    const user: User = await this.userRepository.getUserByUuid(uuid);
+    return UserResponseDTO.fromEntity(user);
+  }
+
+
 
 
 
@@ -261,7 +278,7 @@ class UserService {
 
 
 
-  
+
 
   /**
    * Send welcome email to newly created user
@@ -334,6 +351,59 @@ class UserService {
       throw new Error("Impossible de supprimer l'utilisateur");
     }
   }
+
+
+
+
+  /**
+   * Ghost user to anonymize its personnal data while keeping public datas
+   * @param uuid 
+   * @returns 
+   */
+  public async ghostUser(uuid: string): Promise<boolean> {
+
+    // On vérifie que l'utilisateur à ghoster existe et on recupère les données
+    const userToGhost = await this.getUserByUuid(uuid);
+    if (!userToGhost) throw new Error("Aucun utilisateur trouvé");
+    if (userToGhost.nickname === "_ghost") throw new Error("Cet utilisateur est déjà mort !");
+
+
+    // Suppression du fichier avatar si présent
+    if (userToGhost.avatar && userToGhost.avatar !== "default-avatar.webp") {
+      const avatarPath = path.join(__dirname, "../../uploads/avatars", userToGhost.avatar);
+
+      try {
+        await fs.unlink(avatarPath);
+        console.log("Avatar supprimé:", avatarPath);
+      } catch (err: any) {
+        // Si le fichier n'existe pas, on ne bloque pas la suppression de l'utilisateur
+        if (err.code !== "ENOENT") {
+          console.error("Erreur lors de la suppression de l'image:", err);
+          throw new Error("Erreur lors de la suppression de l'image");
+        }
+      }
+    }
+
+    // On modifie l'utilisateur en base donnée
+    const ghostedUser = await this.userRepository.ghostUser(uuid);
+    if (!ghostedUser) throw new Error("Erreur lors de la suppression de l'utilisateur");
+    return ghostedUser;
+  }
+
+
+
+
+
+  /**
+   * Get the list of all users
+   * @returns 
+   */
+  public async generateHashedPassword(pwd: string): Promise<string[]> {
+
+    const hashedPassword = await bcrypt.hash(pwd, 10);
+    return [hashedPassword, pwd];
+  }
+
 
 
 }

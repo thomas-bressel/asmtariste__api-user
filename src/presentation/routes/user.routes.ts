@@ -44,6 +44,9 @@ router.post("/user/v1/admin/refresh", csrfMiddleware.authRefresh, async (req: Re
 router.get("/user/v1/admin/verify", csrfMiddleware.authToken, async (req: Request, res: Response) =>  {
     userController.verifySession(req, res)
 });
+router.get("/user/v1/admin/password/generate", async (req: Request, res: Response) =>  {
+    userController.generateHashedPassword(req, res)
+});
 
 
 // Routes for user state management
@@ -52,6 +55,9 @@ router.post("/user/v1/admin/user/create", csrfMiddleware.authToken, permissionMi
 });
 router.put("/user/v1/admin/user/activate/:uuid", csrfMiddleware.authToken, permissionMiddleware.check("ACTIVATE_USER"), async (req: Request, res: Response) => { 
     userController.toggleActivate(req, res)
+});
+router.put("/user/v1/admin/user/ghost/:uuid", csrfMiddleware.authToken, permissionMiddleware.check("GHOST_USER"), async (req: Request, res: Response) => { 
+    userController.ghostUser(req, res)
 });
 
 

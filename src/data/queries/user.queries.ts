@@ -5,6 +5,9 @@ export class UserQueries extends UserBaseQueries {
     public getAllUsers(): string {
         return this.getAllUsersQuery();
     }
+    public getUserByUuid(): string {
+        return this.getUserByUuidQuery();
+    }
 
     public getAllUsersWithRole(): string {
         return this.getAllUsersWithRoleQuery();
@@ -27,6 +30,10 @@ export class UserQueries extends UserBaseQueries {
     }
     public toggleActivate(): string {
         return this.toggleActivateQuery();
+    }
+
+    public ghostUser(): string {
+        return this.ghostUserQuery();
     }
 
 }

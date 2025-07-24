@@ -274,6 +274,60 @@ class UserController {
     }
   }
   
+
+
+
+
+/**
+ * Anonymize a user 
+ * @param req 
+ * @param res 
+ * @returns 
+ */
+  public async ghostUser(req: Request, res: Response): Promise<Response> {
+    try {
+      const uuid = req.params.uuid as string;
+      console.log("uuid", uuid);
+      if (!isUUID(uuid)) throw new Error("ID de permission invalide");
+
+
+      const response = await this.userService.ghostUser(uuid);
+      if (!response) throw new Error("Erreur lors de l'anonymisation de l'utilisateur");
+
+      return res.status(200).json(response);
+    } catch (error) {
+      console.error("Erreur dans UserController - ghostUser :", error);
+      return res.status(500).json({ message: (error instanceof Error ? error.message : "Erreur interne du serveur") });
+    }
+  }
+
+
+
+  /**
+   * Get the list of all users
+   * @param req 
+   * @param res 
+   * 
+   * @returns Promise<Response> - Express response object with appropriate status code and data
+   */
+  public async generateHashedPassword(req: Request, res: Response): Promise<Response> {
+    const pwd = req.query.pwd as string;
+    console.log('Valeur que query.pwd : ', pwd)
+    try {
+
+        const response = await this.userService.generateHashedPassword(pwd);
+        if (!response) throw new Error("Résultat vide dans users");
+        return res.status(200).json(response);
+
+    }
+    catch (error) {
+      console.error("Erreur dans UserController - users :", error);
+      return res.status(500).json({ message: (error instanceof Error ? error.message : "Erreur interne du serveur") });
+    }
+  }
+
+
+  
 }
 
 export default UserController;
