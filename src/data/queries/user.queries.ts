@@ -25,5 +25,8 @@ export class UserQueries extends UserBaseQueries {
     public isEmailExists(): string {
         return this.isEmailExistsQuery();
     }
+    public toggleActivate(): string {
+        return this.toggleActivateQuery();
+    }
 
 }

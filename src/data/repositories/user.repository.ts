@@ -1,7 +1,7 @@
 import MySQLUserConnexion from "../../infrastructure/database/mysql-user.connexion";
 import RedisConnection from "../../infrastructure/cache/redis.connection"
 
-import { createPool, Pool } from "mysql2/promise";
+import { createPool, Pool, ResultSetHeader } from "mysql2/promise";
 import { UserQueries } from "../../data/queries/user.queries";
 import User from "../../domain/entities/user.entity";
 
@@ -198,11 +198,11 @@ class UserRepository {
 
 
 
-/**
- * Add a new user into database
- * @param createNewUser 
- * @returns 
- */
+  /**
+   * Add a new user into database
+   * @param createNewUser 
+   * @returns 
+   */
   public async createUser(createNewUser: User): Promise<boolean> {
     let connection;
     if (!(await this.isDatabaseReachable(this.poolUser))) throw new Error("DATABASE_UNREACHABLE");
@@ -234,11 +234,11 @@ class UserRepository {
 
 
 
-/**
- * Check if the nickname already exist in database
- * @param nickname 
- * @returns 
- */
+  /**
+   * Check if the nickname already exist in database
+   * @param nickname 
+   * @returns 
+   */
   public async isNicknameExists(nickname: string): Promise<boolean> {
     let connection;
     if (!(await this.isDatabaseReachable(this.poolUser))) throw new Error("DATABASE_UNREACHABLE");
@@ -260,11 +260,11 @@ class UserRepository {
 
 
 
-/**
- * Check if the email already exist in database
- * @param email 
- * @returns 
- */
+  /**
+   * Check if the email already exist in database
+   * @param email 
+   * @returns 
+   */
   public async isEmailExists(email: string): Promise<boolean> {
     let connection;
     if (!(await this.isDatabaseReachable(this.poolUser))) throw new Error("DATABASE_UNREACHABLE");
@@ -285,6 +285,27 @@ class UserRepository {
 
 
 
+
+  /**
+   * Toggle the activation of the user account
+   * @param uuid 
+   * @returns true or false depending on the value in affectedRows key
+   */
+  public async toggleActivate(uuid: string): Promise<boolean> {
+    let connection;
+    if (!(await this.isDatabaseReachable(this.poolUser))) throw new Error("DATABASE_UNREACHABLE");
+
+    try {
+      connection = await this.poolUser.getConnection();
+      const [result] = await connection.query<ResultSetHeader>(this.userQueries.toggleActivate(), [uuid]);
+      return result.affectedRows > 0;
+    } catch (error) {
+      console.error("Erreur MySQL:", error);
+      throw new Error("DATABASE_ERROR");
+    } finally {
+      if (connection) connection.release();
+    }
+  }
 
 }
 

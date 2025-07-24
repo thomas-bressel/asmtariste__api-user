@@ -13,6 +13,8 @@ import { CreateSessionDTO } from "../../data/dtos/create-session.dto";
 import { ValidateCreateUserDTO } from "../../data/dtos/validate-create-user.dtos";
 
 import { DecodedToken } from "../models/csrf.model";
+import { isUUID } from 'validator';
+
 
 
 class UserController {
@@ -251,7 +253,26 @@ class UserController {
 
 
 
+/**
+ * Toggle the activation of the user account
+ * @param req 
+ * @param res 
+ * @returns 
+ */
+  public async toggleActivate(req: Request, res: Response): Promise<Response> {
+    try {
+      const uuid = req.params.uuid as string;
+      if (!isUUID(uuid)) throw new Error("ID de permission invalide");
 
+      const response = await this.userService.toggleActivate(uuid);
+      if (!response) throw new Error("Résultat vide dans toggleActivate");
+      
+      return res.status(200).json(response);
+    } catch (error) {
+      console.error("Erreur dans UserController - toggleActivate :", error);
+      return res.status(500).json({ message: "Erreur interne du serveur" });
+    }
+  }
   
 }
 

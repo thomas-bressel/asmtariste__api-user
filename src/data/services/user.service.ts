@@ -250,34 +250,49 @@ class UserService {
     const newUser = await this.userRepository.createUser(createNewUser);
     if (!newUser) throw new Error("Erreur lors de la création de l'utilisateur");
 
+    // Send welcome email
+    // const isMailsent = await this.sendWelcomeEmail(createNewUser, password);
+    // if(!isMailsent) throw new Error("Erreur lors de l'envoie du mail de bienvenue'");
+
+    const userCreated = UserResponseDTO.fromEntity(createNewUser);
+
+    return userCreated;
+  }
 
 
-    // Send welcome email with error handling
+
+  
+
+  /**
+   * Send welcome email to newly created user
+   * @param user - The created user
+   * @param password - The generated password
+   * @private
+   */
+  private async sendWelcomeEmail(user: User, password: string): Promise<boolean> {
     try {
       // Test SMTP connection first
       const isConnected = await this.mailService.testConnection();
       if (!isConnected) {
         console.warn('⚠️ SMTP connection failed, but user created successfully');
-      } else {
-        // Create and send email
-        const emailOptions: MailOptionsModel = this.mailService.createEmailOptions(
-          createNewUser.email,
-          createNewUser.nickname,
-          password
-        );
-
-        const emailResponse = await this.mailService.sendMail(emailOptions);
-        this.mailService.stat(emailResponse);
-
+        return false;
       }
+
+      // Create and send email
+      const emailOptions: MailOptionsModel = this.mailService.createEmailOptions(
+        user.email,
+        user.nickname,
+        password
+      );
+
+      const emailResponse = await this.mailService.sendMail(emailOptions);
+      this.mailService.stat(emailResponse);
+      return true;
+
     } catch (emailError) {
       console.error('❌ Failed to send welcome email:', emailError);
+      return false
     }
-
-
-    const userCreated = UserResponseDTO.fromEntity(createNewUser);
-
-    return userCreated;
   }
 
 
@@ -304,6 +319,21 @@ class UserService {
 
 
 
+
+  /**
+   * Toggle the activation of the user account
+   * @param uuid 
+   * @returns 
+   */
+  public async toggleActivate(uuid: string): Promise<any> {
+    try {
+      const response = await this.userRepository.toggleActivate(uuid);
+      return response;
+    } catch (error) {
+      console.error("Erreur dans UserService - toggleActivate :", error);
+      throw new Error("Impossible de supprimer l'utilisateur");
+    }
+  }
 
 
 }

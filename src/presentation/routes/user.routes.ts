@@ -28,7 +28,7 @@ router.use(BodyParserMiddleware.jsonParser);
 
 
 
-// Routes that will implement csrf middleware and permission middleware
+// Routes for user session management
 router.get("/user/v1/admin/users", csrfMiddleware.authToken, async (req: Request, res: Response) => { 
     userController.getAllUsers(req, res)
 });
@@ -45,9 +45,15 @@ router.get("/user/v1/admin/verify", csrfMiddleware.authToken, async (req: Reques
     userController.verifySession(req, res)
 });
 
+
+// Routes for user state management
 router.post("/user/v1/admin/user/create", csrfMiddleware.authToken, permissionMiddleware.check("CREATE_USER"), async (req: Request, res: Response) => { 
     userController.createUser(req, res)
 });
+router.put("/user/v1/admin/user/activate/:uuid", csrfMiddleware.authToken, permissionMiddleware.check("ACTIVATE_USER"), async (req: Request, res: Response) => { 
+    userController.toggleActivate(req, res)
+});
+
 
 
 

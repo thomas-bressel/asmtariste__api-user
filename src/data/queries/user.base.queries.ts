@@ -23,8 +23,17 @@ export abstract class UserBaseQueries {
     protected  isNicknameExistsQuery(): string {
         return `SELECT * FROM users WHERE nickname = ?`;
     }
+
     protected  isEmailExistsQuery(): string {
         return `SELECT * FROM users WHERE email = ?`;
+    }
+
+    protected toggleActivateQuery(): string {
+        return `UPDATE users
+            SET is_activated = CASE
+                WHEN is_activated = 1 THEN 0 ELSE 1
+            END
+            WHERE uuid = ?`;
     }
 
 }
