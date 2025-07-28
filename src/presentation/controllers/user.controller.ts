@@ -11,6 +11,7 @@ import { plainToInstance } from 'class-transformer';
 // DTO importations
 import { CreateSessionDTO } from "../../data/dtos/create-session.dto";
 import { ValidateCreateUserDTO } from "../../data/dtos/validate-create-user.dtos";
+import { ValidateUpdateUserDTO } from "../../data/dtos/validate-update-user.dto";
 
 import { DecodedToken } from "../models/csrf.model";
 import { isUUID } from 'validator';
@@ -22,7 +23,7 @@ class UserController {
 
   constructor(userService: UserService) {
     this.userService = userService;
-   
+
   }
 
 
@@ -39,28 +40,37 @@ class UserController {
    */
   public async getAllUsers(req: Request, res: Response): Promise<Response> {
     const option = req.query.option as string;
-    console.log('Valeur que query.option : ', option)
+    let session = (req.query.session as string === 'true') ? true : false; 
+
 
     try {
       if (!option) return res.status(400).json({ message: `Paramètre '${option}' non reconnu` });
 
-      if (option === 'all') {
+      if (option === 'role' && session) {
+        const response = await this.userService.getAllActiveUserUuid();
+        if (!response) throw new Error("Résultat vide dans users");
+        return res.status(200).json(response);
+      }
+
+      if (option === 'all' && !session) {
         const response = await this.userService.getAllUsers();
         if (!response) throw new Error("Résultat vide dans users");
         return res.status(200).json(response);
       }
 
-      if (option === 'role') {
+      if (option === 'role' && !session) {
         const response = await this.userService.getAllUsersWithRole();
         if (!response) throw new Error("Résultat vide dans users");
         return res.status(200).json(response);
       }
+
+  
+
       return res.status(400).json({ message: `Paramètre '${option}' non reconnu` })
 
     }
     catch (error) {
-      console.error("Erreur dans UserController - users :", error);
-      return res.status(500).json({ message: (error instanceof Error ? error.message : "Erreur interne du serveur") });
+      return res.status(500).json(error instanceof Error ? error.message : "Erreur interne du serveur");
     }
   }
 
@@ -133,10 +143,7 @@ class UserController {
       return res.status(200).json(newTokens);
 
     } catch (error) {
-      console.error("Erreur dans UserController - refreshToken :", error);
-      return res.status(500).json({
-        message: error instanceof Error ? error.message : "Erreur interne du serveur"
-      });
+      return res.status(500).json(error instanceof Error ? error.message : "Erreur interne du serveur");
     }
   }
 
@@ -219,14 +226,14 @@ class UserController {
   }
 
 
-  
 
-/**
- * Create a new User
- * @param req 
- * @param res 
- * @returns 
- */
+
+  /**
+   * Create a new User
+   * @param req 
+   * @param res 
+   * @returns 
+   */
   public async createUser(req: Request, res: Response): Promise<Response> {
 
     const user = req.body;
@@ -244,8 +251,7 @@ class UserController {
 
       return res.status(200).json(response);
     } catch (error) {
-      console.error("Erreur dans UserController - createUser :", error);
-      return res.status(500).json({ message: (error instanceof Error ? error.message : "Erreur interne du serveur") });
+      return res.status(500).json(error instanceof Error ? error.message : "Erreur interne du serveur");
     }
 
   }
@@ -253,12 +259,12 @@ class UserController {
 
 
 
-/**
- * Toggle the activation of the user account
- * @param req 
- * @param res 
- * @returns 
- */
+  /**
+   * Toggle the activation of the user account
+   * @param req 
+   * @param res 
+   * @returns 
+   */
   public async toggleActivate(req: Request, res: Response): Promise<Response> {
     try {
       const uuid = req.params.uuid as string;
@@ -266,28 +272,26 @@ class UserController {
 
       const response = await this.userService.toggleActivate(uuid);
       if (!response) throw new Error("Résultat vide dans toggleActivate");
-      
+
       return res.status(200).json(response);
     } catch (error) {
-      console.error("Erreur dans UserController - toggleActivate :", error);
-      return res.status(500).json({ message: "Erreur interne du serveur" });
+      return res.status(500).json(error instanceof Error ? error.message : "Erreur interne du serveur");
     }
   }
-  
 
 
 
 
-/**
- * Anonymize a user 
- * @param req 
- * @param res 
- * @returns 
- */
+
+  /**
+   * Anonymize a user 
+   * @param req 
+   * @param res 
+   * @returns 
+   */
   public async ghostUser(req: Request, res: Response): Promise<Response> {
     try {
       const uuid = req.params.uuid as string;
-      console.log("uuid", uuid);
       if (!isUUID(uuid)) throw new Error("ID de permission invalide");
 
 
@@ -296,10 +300,38 @@ class UserController {
 
       return res.status(200).json(response);
     } catch (error) {
-      console.error("Erreur dans UserController - ghostUser :", error);
-      return res.status(500).json({ message: (error instanceof Error ? error.message : "Erreur interne du serveur") });
+      return res.status(500).json(error instanceof Error ? error.message : "Erreur interne du serveur");
     }
   }
+
+
+
+
+
+
+  /**
+   * Delete a ghost user
+   * @param req 
+   * @param res 
+   * @returns 
+   */
+  public async deleteUser(req: Request, res: Response): Promise<any> {
+    try {
+      const uuid = req.params.uuid as string;
+      if (!isUUID(uuid)) throw new Error("ID de permission invalide");
+
+
+      const response = await this.userService.deleteUser(uuid);
+      if (!response) throw new Error("Erreur lors de la suppression de l'utilisateur");
+
+      return res.status(200).json(response);
+    } catch (error) {
+      return res.status(500).json(error instanceof Error ? error.message : "Erreur interne du serveur");
+    }
+  }
+
+
+
 
 
 
@@ -315,19 +347,84 @@ class UserController {
     console.log('Valeur que query.pwd : ', pwd)
     try {
 
-        const response = await this.userService.generateHashedPassword(pwd);
+      const response = await this.userService.generateHashedPassword(pwd);
+      if (!response) throw new Error("Résultat vide dans users");
+      return res.status(200).json(response);
+
+    }
+    catch (error) {
+      return res.status(500).json(error instanceof Error ? error.message : "Erreur interne du serveur");
+    }
+  }
+
+
+
+/**
+ * Update a user
+ * @param req 
+ * @param res 
+ * @returns 
+ */
+public async updateUser(req: Request, res: Response): Promise<Response> {
+  try {
+    const user = req.body;
+    if (!user) throw new Error("Aucune informations trouvée pour cet utilisateur.");
+
+    // Validate input data from req.body
+    const dto = plainToInstance(ValidateUpdateUserDTO, req.body);
+    const errors = await validate(dto);
+    if (errors.length > 0) {
+      return res.status(400).json({
+        error: "Données invalides",
+        code: "VALIDATION_ERROR",
+        details: errors
+      });
+    }
+
+    const file = req.file;
+
+    console.log('DONNEES UTILISATEUR ENTRANTES : ', user)
+    console.log('DONNÉES FICHIER ENTRENTES : ', file)
+
+    const response = await this.userService.updateUser(dto, file);
+    console.log("RESPONSE  DE LA REQUETE : ", response);
+    if (!response) throw new Error("Erreur lors de la modification de l'utilisateur");
+
+    return res.status(200).json(response);
+  } catch (error) {
+    console.error("Erreur dans UserController - updateUser :", error);
+    return res.status(500).json({ message: (error instanceof Error ? error.message : "Erreur interne du serveur") });
+  }
+}
+
+
+
+
+
+   /**
+   * Get the information of one user
+   * @param req 
+   * @param res 
+   * 
+   * @returns Promise<Response> - Express response object with appropriate status code and data
+   * 
+   */
+   public async getUserByUuid(req: Request, res: Response): Promise<Response> {
+    const uuid = req.query.uuid as string;
+    if (!isUUID(uuid)) throw new Error("ID de permission invalide");
+
+    try {
+     
+        const response = await this.userService.getUserByUuid(uuid);
         if (!response) throw new Error("Résultat vide dans users");
         return res.status(200).json(response);
 
     }
     catch (error) {
-      console.error("Erreur dans UserController - users :", error);
-      return res.status(500).json({ message: (error instanceof Error ? error.message : "Erreur interne du serveur") });
+      return res.status(500).json(error instanceof Error ? error.message : "Erreur interne du serveur");
     }
   }
 
-
-  
 }
 
 export default UserController;

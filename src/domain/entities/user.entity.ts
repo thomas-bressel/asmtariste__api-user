@@ -11,7 +11,7 @@ export default class User {
     public readonly last_login: Date,
     public readonly is_activated: boolean,
     public readonly id_role: number,
-    public readonly avatar: string,
+    public avatar: string,
     ) {}
   }
   

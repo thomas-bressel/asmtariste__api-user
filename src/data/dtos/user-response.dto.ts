@@ -11,8 +11,8 @@ export class UserResponseDTO {
     public avatar: string,
     public registration_date: Date,
     public last_login: Date,
-    public is_activated: boolean,
-    public id_role: number,
+    public is_activated: boolean | number,
+    public id_role: number
   ) {}
 
   /**

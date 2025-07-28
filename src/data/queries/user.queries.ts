@@ -24,9 +24,15 @@ export class UserQueries extends UserBaseQueries {
     public isNicknameExists(): string {
         return this.isNicknameExistsQuery();
     }
+    public isNicknameExistsButUuidRow(): string {
+        return this.isNicknameExistsButUuidRowQuery();
+    }
 
     public isEmailExists(): string {
         return this.isEmailExistsQuery();
+    }
+    public isEmailExistsButUuidRow(): string {
+        return this.isEmailExistsButUuidRowQuery();
     }
     public toggleActivate(): string {
         return this.toggleActivateQuery();
@@ -34,6 +40,14 @@ export class UserQueries extends UserBaseQueries {
 
     public ghostUser(): string {
         return this.ghostUserQuery();
+    }
+
+    public deleteUser(): string {
+        return this.deleteUserQuery();
+    }
+
+    public updateUser(): string {
+        return this.updateUserQuery();
     }
 
 }

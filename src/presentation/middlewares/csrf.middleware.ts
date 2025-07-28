@@ -33,6 +33,11 @@ class CsrfMiddleware {
     }
 
 
+
+
+
+
+
     /**
      * Get the CSRF token keys from environment variables.
      * @returns 
@@ -46,6 +51,11 @@ class CsrfMiddleware {
         };
     }
 
+
+
+
+
+
     /**
      * Main method to authenticate the token.
      * @param req 
@@ -55,8 +65,6 @@ class CsrfMiddleware {
      */
     public authToken(req: Request, res: Response, next: NextFunction): void {
         const token = this.extractToken(req);
-        console.log("Token reçu depuis le client: ", token)
-
         if (!this.isTokenValid(token)) {
             res.status(401).json({
                 error: 'Token missing or invalid',
@@ -78,6 +86,11 @@ class CsrfMiddleware {
 
         this.verifyToken(token as string, secretKey, res, next);
     }
+
+
+
+
+
 
     /**
      * Method to authenticate the refresh token.
@@ -112,6 +125,9 @@ class CsrfMiddleware {
     }
 
 
+
+
+
     /**
      * exctract the token from the request headers.
      * @param req 
@@ -122,6 +138,10 @@ class CsrfMiddleware {
         return header && header.split(' ')[1];
     }
 
+
+
+
+
     /**
      * Check if the token is valid.
      * @param token 
@@ -130,6 +150,11 @@ class CsrfMiddleware {
     private isTokenValid(token: string | undefined): boolean {
         return token !== undefined && token !== 'null' && token !== '';
     }
+
+
+
+
+
 
     /**
      * Verify the token using the secret key.
@@ -140,7 +165,9 @@ class CsrfMiddleware {
      * @param next 
      */
     private verifyToken(token: string, secretKey: string, res: Response, next: NextFunction): void {
+
         jwt.verify(token, secretKey, (error, decoded) => {
+
             if (error) {
                 if (error.name === 'TokenExpiredError') {
                     return res.status(401).json({
@@ -161,6 +188,11 @@ class CsrfMiddleware {
         });
     }
 
+
+
+
+
+
     /**
      * Verify the refresh token using the refresh key.
      * @param token 
@@ -169,6 +201,7 @@ class CsrfMiddleware {
      * @param next 
      */
     private verifyRefresh(token: string, refreshKey: string, res: Response, next: NextFunction): void {
+
         jwt.verify(token, refreshKey, (error, decoded) => {
             if (error) {
                 if (error.name === 'TokenExpiredError') {
@@ -191,6 +224,11 @@ class CsrfMiddleware {
         });
     }
 
+
+
+
+
+
     /**
      * Getter to get secretKey from the environnement variables
      */
@@ -199,6 +237,11 @@ class CsrfMiddleware {
         if (!secretKey) throw new Error('Error: Missing secret key');
         return secretKey;
     }
+
+
+
+
+
 
     /**
      * Getter to get refreshKey from the environnement variables
@@ -209,6 +252,11 @@ class CsrfMiddleware {
         return refreshKey;
     }
 
+
+
+
+
+
     /**
      * Getter to get token duration from the environnement variables
      */
@@ -217,6 +265,11 @@ class CsrfMiddleware {
         if (!tokenTime) throw new Error('Error: Missing token duration');
         return tokenTime;
     }
+
+
+
+
+
 
     /**
      * Getter to get refresh token time from the environnement variables

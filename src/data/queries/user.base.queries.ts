@@ -21,28 +21,45 @@ export abstract class UserBaseQueries {
 
     protected createUserQuery(): string {
         return `INSERT INTO users (uuid, nickname, firstname, lastname, email, hash_password, avatar, is_activated, id_role)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`;
     }
 
     protected  isNicknameExistsQuery(): string {
         return `SELECT * FROM users WHERE nickname = ?`;
     }
+    protected  isNicknameExistsButUuidRowQuery(): string {
+        return `SELECT * FROM users WHERE nickname = ? AND uuid != ?`;
+    }
 
     protected  isEmailExistsQuery(): string {
         return `SELECT * FROM users WHERE email = ?`;
     }
+    protected  isEmailExistsButUuidRowQuery(): string {
+        return `SELECT * FROM users WHERE email = ? AND uuid != ?`;
+    }
 
     protected toggleActivateQuery(): string {
         return `UPDATE users
-            SET is_activated = CASE
-                WHEN is_activated = 1 THEN 0 ELSE 1
-            END
-            WHERE uuid = ?`;
+                SET is_activated = CASE
+                    WHEN is_activated = 1 THEN 0 ELSE 1
+                END
+                WHERE uuid = ?`;
     }
+
     protected ghostUserQuery(): string {
         return `UPDATE users
-            SET is_activated = 0, nickname = '_ghost', firstname = '_ghost', lastname = '_ghost', hash_password = '_ghost', id_role = 666
-            WHERE uuid = ?`;
+                SET is_activated = 0, nickname = '_ghost', firstname = '_ghost', lastname = '_ghost', hash_password = '_ghost', id_role = 666
+                WHERE uuid = ?`;
+    }
+
+    protected deleteUserQuery(): string {
+        return `DELETE FROM users WHERE uuid = ?`;
+    }
+
+    protected updateUserQuery(): string {
+        return `UPDATE users 
+                SET nickname = ?, firstname = ?, lastname = ?, email = ?, avatar = ?, id_role = ?
+                WHERE uuid = ?`;
     }
 
 }

@@ -14,8 +14,14 @@ export class UserRoleResponseDTO {
       public is_activated: boolean,
       public role_name: string,
       public role_color: string,
+      public isSessionActive?: boolean,
     ) {}
   
+
+
+
+
+    
 
     /**
      * Method to convert an aggregated Entity into a DTO
@@ -23,7 +29,7 @@ export class UserRoleResponseDTO {
      * @param role 
      * @returns 
      */
-    static fromEntityWithRole(user: User, role: Role): UserRoleResponseDTO {
+    static fromEntityWithRole(user: User, role: Role, isSessionActive?: boolean): UserRoleResponseDTO {
       return new UserRoleResponseDTO(
         user.uuid,
         user.nickname,
@@ -36,29 +42,39 @@ export class UserRoleResponseDTO {
         user.is_activated,
         role.role_name,
         role.role_color,
+        isSessionActive
       );
     }
 
 
-    /**
+
+
+ /**
    * Convert an array of UserRole data into DTOs
    * @param usersWithRoleData 
+   * @param activeUsers 
    * @returns 
    */
-  static fromEntitiesWithRole(usersWithRoleData: any[]): UserRoleResponseDTO[] {
-    return usersWithRoleData.map(userRole => 
-      this.fromEntityWithRole(userRole.user, userRole.role)
-    );
-  }
+ static fromEntitiesWithRole(usersWithRoleData: any[], activeUsers?: string[]): UserRoleResponseDTO[] {
+  return usersWithRoleData.map(userRole => {
+    const isSessionActive = activeUsers ? activeUsers.includes(userRole.user.uuid) : undefined;
+    return this.fromEntityWithRole(userRole.user, userRole.role, isSessionActive);
+  });
+}
 
 
-  /**
-     * Method to convert a list of User + Role into a DTO
-     * @param rawData 
-     * @returns 
-     */
-  static toUserWithRoleDTOs(rawData: unknown[]): UserRoleResponseDTO[] {
-    return (rawData as any[]).map(row => new UserRoleResponseDTO(
+
+
+/**
+   * Method to convert a list of User + Role into a DTO
+   * @param rawData 
+   * @param activeUsers 
+   * @returns 
+   */
+static toUserWithRoleDTOs(rawData: unknown[], activeUsers?: string[]): UserRoleResponseDTO[] {
+  return (rawData as any[]).map(row => {
+    const isSessionActive = activeUsers ? activeUsers.includes(row.uuid) : undefined;
+    return new UserRoleResponseDTO(
       row.uuid,
       row.nickname,
       row.email,
@@ -69,9 +85,12 @@ export class UserRoleResponseDTO {
       row.last_login,
       row.is_activated,
       row.role_name,
-      row.role_color
-    ));
-  }
+      row.role_color,
+      isSessionActive
+    );
+  });
 
   }
+
+}
   

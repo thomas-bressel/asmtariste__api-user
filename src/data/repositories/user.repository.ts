@@ -31,6 +31,9 @@ class UserRepository {
   }
 
 
+
+
+
   /**
    * Get the list of all user from de database
    * @returns 
@@ -56,14 +59,11 @@ class UserRepository {
 
 
 
-
-
-
-/**
- * Get the list of all user from de database
- * @param uuid 
- * @returns 
- */
+  /**
+   * Get the list of all user from de database
+   * @param uuid 
+   * @returns 
+   */
   public async getUserByUuid(uuid: string): Promise<User> {
     let connection;
     if (!(await this.isDatabaseReachable(this.poolUser))) throw new Error("DATABASE_UNREACHABLE");
@@ -82,9 +82,6 @@ class UserRepository {
     }
 
   }
-
-
-
 
 
 
@@ -114,6 +111,8 @@ class UserRepository {
 
 
 
+
+
   /**
    * Get information of a unique user by its nickname
    * @param nickname 
@@ -138,6 +137,7 @@ class UserRepository {
     }
 
   }
+
 
 
 
@@ -179,6 +179,8 @@ class UserRepository {
 
 
 
+
+
   /**
    * Method to Check is User has an active session
    * @param uuid 
@@ -198,6 +200,38 @@ class UserRepository {
       console.error("Error checking user connection:", error);
       // Considere is not connected
       return false;
+    }
+  }
+
+
+
+
+
+/**
+ * Get all active session uuid users in cache memory 
+ * @returns 
+ */
+  public async getAllActiveUserUuid(): Promise<string[]> {
+    const redisClient = RedisConnection.getClient;
+  
+    try {
+      if (!redisClient.isOpen) await RedisConnection.connect();
+  
+      // Récupérer toutes les clés qui commencent par "user:" et finissent par ":session"
+      const userSessionKeys = await redisClient.keys('user:*:session');
+      
+      // Extraire les UUID des clés
+      const uuids = userSessionKeys.map(key => {
+        // key format: "user:UUID:session"
+        const parts = key.split(':');
+        return parts[1]; // L'UUID est entre les deux ":"
+      });
+      
+      return uuids;
+  
+    } catch (error) {
+      console.error("Error getting all active sessions:", error);
+      return [];
     }
   }
 
@@ -275,15 +309,28 @@ class UserRepository {
    * @param nickname 
    * @returns 
    */
-  public async isNicknameExists(nickname: string): Promise<boolean> {
+  public async isNicknameExists(nickname: string, uuid?: string): Promise<boolean> {
     let connection;
     if (!(await this.isDatabaseReachable(this.poolUser))) throw new Error("DATABASE_UNREACHABLE");
 
     try {
       connection = await this.poolUser.getConnection();
-      const [rows] = await connection.query<any[]>(this.userQueries.isNicknameExists(), [nickname]);
-      if (!rows || rows.length === 0) return false;
-      return true;
+
+
+      // If not uuid then the query checks if nickname existe anywhere user table
+      if (!uuid) {
+        const [rows] = await connection.query<any[]>(this.userQueries.isNicknameExists(), [nickname]);
+        if (!rows || rows.length === 0) return false;
+        return true;
+      }
+
+      // If uuid and nickname both exist, then the query check if nickname exist anywhere but the uuid row data
+      if (uuid && nickname) {
+        const [rows] = await connection.query<any[]>(this.userQueries.isNicknameExistsButUuidRow(), [nickname, uuid]);
+        if (!rows || rows.length === 0) return false;
+        return true;
+      } 
+      return false;
     } catch (error) {
       console.error("Erreur MySQL:", error);
       throw error;
@@ -301,15 +348,27 @@ class UserRepository {
    * @param email 
    * @returns 
    */
-  public async isEmailExists(email: string): Promise<boolean> {
+  public async isEmailExists(email: string, uuid?: string): Promise<boolean> {
     let connection;
     if (!(await this.isDatabaseReachable(this.poolUser))) throw new Error("DATABASE_UNREACHABLE");
 
     try {
       connection = await this.poolUser.getConnection();
-      const [rows] = await connection.query<any[]>(this.userQueries.isEmailExists(), [email]);
-      if (!rows || rows.length === 0) return false;
-      return true;
+
+      // If not uuid : then the query checks if email existe anywhere user table
+      if (!uuid) {
+        const [rows] = await connection.query<any[]>(this.userQueries.isEmailExists(), [email]);
+        if (!rows || rows.length === 0) return false;
+        return true;
+      }
+
+      // If uuid and email both exist : then the query check if email exist anywhere but the uuid row data
+      if (uuid && email) {
+        const [rows] = await connection.query<any[]>(this.userQueries.isEmailExistsButUuidRow(), [email, uuid]);
+        if (!rows || rows.length === 0) return false;
+        return true;
+      } 
+      return false;
     } catch (error) {
       console.error("Erreur MySQL:", error);
       throw error;
@@ -318,6 +377,7 @@ class UserRepository {
     }
 
   }
+
 
 
 
@@ -348,7 +408,11 @@ class UserRepository {
 
 
 
-
+  /**
+   * 
+   * @param uuid 
+   * @returns 
+   */
   public async ghostUser(uuid: string): Promise<boolean> {
     let connection;
     if (!(await this.isDatabaseReachable(this.poolUser))) throw new Error("DATABASE_UNREACHABLE");
@@ -368,6 +432,67 @@ class UserRepository {
   }
 
 
+
+
+
+
+  /**
+   * 
+   * @param uuid 
+   * @returns 
+   */
+  public async deleteUser(uuid: string): Promise<boolean> {
+    let connection;
+    if (!(await this.isDatabaseReachable(this.poolUser))) throw new Error("DATABASE_UNREACHABLE");
+
+    try {
+      connection = await this.poolUser.getConnection();
+      const [rows] = await connection.query<any[]>(this.userQueries.deleteUser(), [uuid]);
+      if (!rows || rows.length === 0) return false;
+      return true;
+    } catch (error) {
+      console.error("Erreur MySQL:", error);
+      throw error;
+    } finally {
+      if (connection) connection.release();
+    }
+
+  }
+
+
+
+
+
+  /**
+   * 
+   * @param dataUser 
+   * @returns 
+   */
+  public async updateUser(dataUser: User): Promise<boolean> {
+    let connection;
+    if (!(await this.isDatabaseReachable(this.poolUser))) throw new Error("DATABASE_UNREACHABLE");
+
+    try {
+      connection = await this.poolUser.getConnection();
+      const [rows] = await connection.query<any[]>(this.userQueries.updateUser(), [
+        dataUser.nickname, 
+        dataUser.firstname, 
+        dataUser.lastname, 
+        dataUser.email, 
+        dataUser.avatar, 
+        dataUser.id_role,
+        dataUser.uuid
+      ]);
+      if (!rows || rows.length === 0) return false;
+      return true;
+    } catch (error) {
+      console.error("Erreur MySQL:", error);
+      throw error;
+    } finally {
+      if (connection) connection.release();
+    }
+
+  }
 
 }
 

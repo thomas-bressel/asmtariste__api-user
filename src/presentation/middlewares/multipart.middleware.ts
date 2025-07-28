@@ -1,7 +1,7 @@
 /**
  * Middleware for handling multipart file uploads and storage operations.
  * 
- * @version 1.0.0
+ * @version 1.0.1
  * @author Thomas Bressel
  * @since 2025-07-23
  * 
@@ -42,14 +42,10 @@ class MultipartMiddleware {
      * 
      * @param fileBuffer - The file buffer to save
      * @param originalName - Original filename with extension
-     * @param targetFolder - Target folder path (default: 'uploads/articles')
+     * @param targetFolder - Target folder path (default: '../uploads')
      * @returns The generated filename
      */
-    public static saveFileFromMemory(
-        fileBuffer: Buffer, 
-        originalName: string, 
-        targetFolder: string = 'uploads/articles'
-    ): string {
+    public static saveFileFromMemory(fileBuffer: Buffer, originalName: string, targetFolder: string = '../uploads'): string {
         const processedFilename = this.generateUniqueFilename(originalName);
         const fullPath = this.ensureDirectoryExists(targetFolder);
         const filePath = path.join(fullPath, processedFilename);

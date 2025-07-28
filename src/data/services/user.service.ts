@@ -14,6 +14,9 @@ import { CsrfTokenType, DecodedToken } from "../../presentation/models/csrf.mode
 
 //DTO import
 import { ValidateCreateUserDTO } from "../dtos/validate-create-user.dtos";
+import { ValidateUpdateUserDTO } from "../dtos/validate-update-user.dto";
+import { UpdateUserDTO } from "../dtos/update-user.dto";
+
 
 // Library imports
 import bcrypt from 'bcryptjs';
@@ -25,6 +28,7 @@ import path from "path";
 
 import { MailOptionsModel } from "../../presentation/models/mail.model";
 import MailService from "../../data/services/mail.service";
+import MultipartMiddleware from "../../presentation/middlewares/multipart.middleware";
 
 
 
@@ -46,6 +50,8 @@ class UserService {
     const users: User[] = await this.userRepository.getAllUsers();
     return UserResponseDTO.fromEntities(users);
   }
+
+
 
 
 
@@ -198,6 +204,28 @@ class UserService {
 
 
 
+
+
+
+  /**
+   * Get all users with their role and the status of their session
+   * @returns 
+   */
+  public async getAllActiveUserUuid(): Promise<UserRoleResponseDTO[]> {
+    try {
+      const activeUsers = await this.userRepository.getAllActiveUserUuid();
+      const rawUsersWithRole = await this.userRepository.getAllUsersWithRole();
+  
+      // Utiliser directement le DTO avec activeUsers
+      return UserRoleResponseDTO.toUserWithRoleDTOs(rawUsersWithRole, activeUsers);
+      
+    } catch (error) {
+      console.error("Error in UserService - getAllActiveUserUuid:", error);
+      throw new Error("Impossible de récupérer les utilisateurs connectés");
+    }
+  }
+
+
   /**
    * Delete uuid from cache to know if the user is connected 
    * @param decoded 
@@ -272,6 +300,7 @@ class UserService {
     // if(!isMailsent) throw new Error("Erreur lors de l'envoie du mail de bienvenue'");
 
     const userCreated = UserResponseDTO.fromEntity(createNewUser);
+    console.log('PASSWORDD CREATED : ', password)
 
     return userCreated;
   }
@@ -364,9 +393,10 @@ class UserService {
 
     // On vérifie que l'utilisateur à ghoster existe et on recupère les données
     const userToGhost = await this.getUserByUuid(uuid);
-    if (!userToGhost) throw new Error("Aucun utilisateur trouvé");
-    if (userToGhost.nickname === "_ghost") throw new Error("Cet utilisateur est déjà mort !");
 
+    if (!userToGhost) throw new Error("Aucun utilisateur trouvé");
+    if (userToGhost.nickname === "_ghost" || userToGhost.id_role === 666) throw new Error("Cet utilisateur est déjà mort !");
+    if (userToGhost.is_activated === 1 ) throw new Error("Cet utilisateur ne peut pas être ghosté, il doit être innactif !");
 
     // Suppression du fichier avatar si présent
     if (userToGhost.avatar && userToGhost.avatar !== "default-avatar.webp") {
@@ -403,6 +433,143 @@ class UserService {
     const hashedPassword = await bcrypt.hash(pwd, 10);
     return [hashedPassword, pwd];
   }
+
+
+
+
+
+  /**
+   * Delete a ghost user
+   * @param uuid 
+   */
+  public async deleteUser(uuid: string): Promise<boolean> {
+
+    // On vérifie que l'utilisateur à supprimer existe et on recupère les données
+    const userToDelete = await this.getUserByUuid(uuid);
+    if (!userToDelete) throw new Error("Aucun utilisateur trouvé");
+    if (userToDelete.nickname !== "_ghost" || userToDelete.id_role !== 666) throw new Error("Vous ne pouvez pas supprimer cet utilisateur car il n'est pas anonymisé");
+
+    // Suppression du fichier avatar si présent
+    if (userToDelete.avatar && userToDelete.avatar !== "default-avatar.webp") {
+      const avatarPath = path.join(__dirname, "../../uploads/avatars", userToDelete.avatar);
+
+      try {
+        await fs.unlink(avatarPath);
+      } catch (err: any) {
+        // Si le fichier n'existe pas, on ne bloque pas la suppression de l'utilisateur
+        if (err.code !== "ENOENT") {
+          console.error("Erreur lors de la suppression de l'image:", err);
+          throw new Error("Erreur lors de la suppression de l'image");
+        }
+      }
+    }
+
+    // On modifie l'utilisateur en base donnée
+    const deletedUser = await this.userRepository.deleteUser(uuid);
+    if (!deletedUser) throw new Error("Erreur lors de la suppression de l'utilisateur");
+    return deletedUser;
+  }
+
+
+
+
+/**
+ * Update a user
+ * @param validatedData - DTO déjà validé par le controller
+ * @param userFile 
+ * @returns 
+ */
+public async updateUser(validatedData: ValidateUpdateUserDTO, userFile?: Express.Multer.File): Promise<User> {
+
+  // On vérifie que l'utilisateur à modifier existe et on recupère les données
+  const userToUpdate = await this.getUserByUuid(validatedData.uuid);
+  if (!userToUpdate) throw new Error("Aucun utilisateur trouvé");
+  console.log('Utilisateur à mettre à jour : ', userToUpdate)
+  
+  // Check if nickname already exists in database excepted on its own (defined by unique uuid)
+  const userResult = await this.userRepository.isNicknameExists(validatedData.nickname, validatedData.uuid);
+  if (userResult) throw new Error("Le pseudo existe déjà");
+  
+  // Check if email already exists in database excepted on its own (defined by unique uuid)
+  const emailResult = await this.userRepository.isEmailExists(validatedData.email, validatedData.uuid);
+  if (emailResult) throw new Error("L'email existe déjà");
+  
+  // Conversion du DTO validé vers le DTO de transformation
+  const updateUserDTO = UpdateUserDTO.fromValidatedData(validatedData);
+  
+  // Conversion vers l'entité User
+  const userEntity = updateUserDTO.toEntity(userFile);
+
+  console.log('Entité User créée : ', userEntity);
+
+  // Sauvegarde du fichier mis en mémoire, sur le disque, si un fichier est présent
+  if (userFile && userFile.buffer) {
+    const avatarPath = MultipartMiddleware.saveFileFromMemory(userFile.buffer, userFile.originalname, '../uploads/avatars');
+    userEntity.avatar = avatarPath;
+  }
+
+  // Update the user into database
+  const updatedUser = await this.userRepository.updateUser(userEntity);
+  if (!updatedUser) throw new Error("Erreur lors de la modification de l'utilisateur");
+
+  console.log('Utilisateur mis à jour avec succès');
+  return userEntity;
+}
+
+
+  // /**
+  //  * Validate the user data when creating a new user
+  //  * @param userData 
+  //  * @param userFile 
+  //  * @returns 
+  //  */
+  // private async validateNewUserData(userData: User, userFile?: Express.Multer.File): Promise<User | string> {
+  //   const validatedDataUser: any = {};
+
+  //   const nickname = userData.nickname;
+  //   if (!validator.isLength(nickname, { min: 3, max: 25 })) return "Le pseudo doit contenir entre 3 et 25 caractères";
+
+  //   const firstname = userData.firstname;
+  //   if (firstname && !validator.isLength(firstname, { min: 0, max: 25 })) return "Le prénom doit contenir 50 caractères maximum";
+
+  //   const lastname = userData.lastname;
+  //   if (lastname && !validator.isLength(lastname, { min: 0, max: 50 })) return "Le nom doit contenir 50 caractères maximum";
+
+  //   const email = userData.email;
+  //   if (!validator.isEmail(email)) return "Invalid email";
+  //   if (!validator.isLength(email, { min: 0, max: 50 })) return "L'email doit contenir 50 caractères maximum";
+
+  //   const id_role = validator.toInt(userData.id_role.toString());
+  //   let avatar!: string;
+
+  //   console.log('Field Name : ', userFile?.fieldname)
+  //   console.log('OriginalName : ', userFile?.originalname)
+
+  //  // If there is no file sent from the form, then avatar = avatar
+  //  if (!userFile?.fieldname) {
+  //   console.log('Il n\'y a aucun fichier, avatar = avatar',userData.avatar)
+  //   avatar = userData.avatar;
+  // }
+  
+  // // If a file is sent from the form, the avatar = filename 
+  // if (userFile?.originalname) {
+  //   console.log('Il a un fichier, avatar = originalname',userFile?.originalname)
+  //   avatar = userFile?.originalname;
+  // }
+
+
+  //   validatedDataUser.uuid = userData.uuid;
+  //   validatedDataUser.nickname = nickname;
+  //   validatedDataUser.firstname = firstname;
+  //   validatedDataUser.lastname = lastname;
+  //   validatedDataUser.email = email;
+  //   validatedDataUser.avatar = avatar;
+  //   validatedDataUser.id_role = id_role;
+
+  //   return validatedDataUser;
+  // }
+
+
 
 
 
