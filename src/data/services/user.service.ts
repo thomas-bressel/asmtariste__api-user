@@ -5,16 +5,16 @@ import CsrfMiddleware from "../../presentation/middlewares/csrf.middleware";
 // Entity imports
 import User from "../../domain/entities/user.entity";
 import UserRole from "../../domain/interfaces/user-role-aggregate.interface";
-import { UserResponseDTO } from "../dtos/user-response.dto";
-import { UserRoleResponseDTO } from "../dtos/user-role-response.dto";
+import { UserResponseDTO } from "../dtos/responses/user-response.dto";
+import { UserRoleResponseDTO } from "../dtos/responses/user-role-response.dto";
 
 // Models imports
 import { Payload } from "../models/payload.model";
 import { CsrfTokenType, DecodedToken } from "../../presentation/models/csrf.model";
 
 //DTO import
-import { ValidateCreateUserDTO } from "../dtos/validate-create-user.dtos";
-import { ValidateUpdateUserDTO } from "../dtos/validate-update-user.dto";
+import { ValidateCreateUserDTO } from "../dtos/validations/validate-create-user.dtos";
+import { ValidateUpdateUserDTO } from "../dtos/validations/validate-update-user.dto";
 import { UpdateUserDTO } from "../dtos/update-user.dto";
 
 

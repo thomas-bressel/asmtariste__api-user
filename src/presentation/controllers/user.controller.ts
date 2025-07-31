@@ -10,8 +10,8 @@ import { plainToInstance } from 'class-transformer';
 
 // DTO importations
 import { CreateSessionDTO } from "../../data/dtos/create-session.dto";
-import { ValidateCreateUserDTO } from "../../data/dtos/validate-create-user.dtos";
-import { ValidateUpdateUserDTO } from "../../data/dtos/validate-update-user.dto";
+import { ValidateCreateUserDTO } from "../../data/dtos/validations/validate-create-user.dtos";
+import { ValidateUpdateUserDTO } from "../../data/dtos/validations/validate-update-user.dto";
 
 import { DecodedToken } from "../models/csrf.model";
 import { isUUID } from 'validator';

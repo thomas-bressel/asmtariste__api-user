@@ -1,5 +1,5 @@
-import User  from '../../domain/entities/user.entity';
-import Role from '../../domain/entities/role.entity';
+import User  from '../../../domain/entities/user.entity';
+import Role from '../../../domain/entities/role.entity';
 
 export class UserRoleResponseDTO {
     constructor(

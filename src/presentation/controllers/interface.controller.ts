@@ -40,12 +40,10 @@ class InterfaceController {
             // Get permissions list from this user
             const userPermissions = await this.permissionService.getPermissionsByUserUuid(uuid);
             if (!userPermissions) return res.status(400).json({ message: "Résultat vide dans getPermissionsByUserUuid" });
-            // console.log('Permission de l\'utilisateur', userPermissions)
 
             // Get default interface from database
             const defaultInterface = await this.interfaceService.getDefaultInterfaceByType('private', type);
             if (!defaultInterface) return res.status(404).json({ message: "Interface non trouvée" });
-            // console.log('Interface par defaut : ',defaultInterface)
 
             // Filter interface depending on the role and permissions
             const filteredInterface = this.interfaceService.filterInterfaceByPermissions(userPermissions, defaultInterface);

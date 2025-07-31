@@ -1,5 +1,5 @@
 import InterfaceRepository from '../repositories/interface.repository';
-import InterfaceResponseDto from '../dtos/interface-response.dto';
+import InterfaceResponseDto from '../dtos/responses/interface-response.dto';
 import PermissionResponseDto from '../dtos/permission.dto';
 
 class InterfaceService {
